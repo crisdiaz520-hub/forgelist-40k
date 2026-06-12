@@ -1,0 +1,2601 @@
+{
+  "rules": {
+    "legion of excess": {
+      "name": "Beguiling Aura",
+      "timing": "",
+      "effect": "LEGIONES DAEMONICA SLAANESH units from your army are eligible to declare a charge in a turn in which they Fell Back.",
+      "details": [],
+      "source": "Chaos - Chaos Daemons Library.cat"
+    },
+    "scintillating legion": {
+      "name": "Fates in Flux",
+      "timing": "You start the battle with three Flux tokens (we recommend using a dice to track how many Flux tokens you have). You can spend one Flux token just after an Advance roll, Hit roll, Wound roll, Damage roll, saving throw or Hazardous test is made for a LEGIONES DAEMONICA TZEENTCH model or LEGIONES DAEMONICA TZEENTCH unit from your army to re-roll the result of that roll, throw or test. Flux tokens can also be spent to enhance the effect of some Stratagems. Each time you spend a Flux token, reduce the number of Flux tokens you have by one and your opponent gains one Flux token.",
+      "effect": "Whenever your opponent has one or more Flux tokens, they can spend one Flux token after an Advance roll, Hit roll, Wound roll or saving throw is made for a model or unit from their army, to re-roll the result of that roll or throw. If they do, they reduce the number of Flux tokens they have by one and you gain one Flux token. This is ignored if your opponent has the Fates in Flux Detachment rule.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "In your Command phase, if your opponent has one or more Flux tokens, you gain one Flux token."
+        },
+        {
+          "label": "Designer'S Note",
+          "text": "Designer's Note: *When using fast dice rolling, this rule can be used to spend any number of Flux tokens (up to the amount you have), to re-roll a number of dice up to the amount spent, after rolling multiple rolls or saving throws at once.*"
+        }
+      ],
+      "source": "Chaos - Chaos Daemons Library.cat"
+    },
+    "blood legion": {
+      "name": "Murdercall",
+      "timing": "Each time an enemy unit (excluding AIRCRAFT) ends a Normal or Advance move within 6\" of one or more LEGIONES DAEMONICA KHORNE units from your army, one of those LEGIONES DAEMONICA KHORNE units can make a Surge move towards that enemy unit. To do so, roll one D6: models in your unit move a number of inches up to this result, but your unit must end that move as close as possible to that enemy unit. When doing so, those models can be moved within Engagement Range of that enemy unit. A unit cannot make a Surge move while it is within Engagement Range of one or more enemy units.",
+      "effect": "Each time an enemy unit (excluding AIRCRAFT) ends a Normal or Advance move within 6\" of one or more LEGIONES DAEMONICA KHORNE units from your army, one of those LEGIONES DAEMONICA KHORNE units can make a Surge move towards that enemy unit. To do so, roll one D6: models in your unit move a number of inches up to this result, but your unit must end that move as close as possible to that enemy unit. When doing so, those models can be moved within Engagement Range of that enemy unit. A unit cannot make a Surge move while it is within Engagement Range of one or more enemy units.",
+      "details": [],
+      "source": "Chaos - Chaos Daemons Library.cat"
+    },
+    "plague legion": {
+      "name": "Melancholic Miasma",
+      "timing": "While an enemy unit is within 9\" of one or more LEGIONES DAEMONICA NURGLE units from your army, that enemy unit is within your army's Shadow of Chaos. In each player's Command phase, select one enemy unit within your army's Shadow of Chaos. That unit must take a Battle-shock test.",
+      "effect": "While an enemy unit is within 9\" of one or more LEGIONES DAEMONICA NURGLE units from your army, that enemy unit is within your army's Shadow of Chaos. In each player's Command phase, select one enemy unit within your army's Shadow of Chaos. That unit must take a Battle-shock test.",
+      "details": [],
+      "source": "Chaos - Chaos Daemons Library.cat"
+    },
+    "shadow legion": {
+      "name": "First Prince of Chaos",
+      "timing": "",
+      "effect": "Abilities for this Detachment are linked to the relevant units.",
+      "details": [],
+      "source": "Chaos - Chaos Daemons Library.cat"
+    },
+    "traitoris lance": {
+      "name": "Paragons of Terror",
+      "timing": "At the start of the first battle round, after selecting one or more Dread abilities to be active for your army, you can select one additional Dread ability to be active for your army (this additional Dread ability cannot be randomly selected).",
+      "effect": "At the start of the first battle round, after selecting one or more Dread abilities to be active for your army, you can select one additional Dread ability to be active for your army (this additional Dread ability cannot be randomly selected).",
+      "details": [],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "iconoclast fiefdom": {
+      "name": "Dreaded Masters",
+      "timing": "Dread Tyrants (Aura): While a friendly DAMNED unit is within 9\" of this unit, each time a model in that unit makes an attack, re-roll a Hit roll of 1 and re-roll a Wound roll of 1.",
+      "effect": "TITANIC CHAOS KNIGHTS units from your army have the following abilities:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "CHAOS KNIGHTS units from your army have the following abilities:"
+        },
+        {
+          "label": "Dark Sacrifice",
+          "text": "Dark Sacrifice: Each time a CHAOS KNIGHTS unit with this ability is selected to shoot or fight, it can make a Dark Sacrifice. If it does, select one friendly DAMNED unit within 6\". That DAMNED unit must take a Leadership test: if passed, destroy D3 models in that DAMNED unit; if failed, destroy D3+3 models in that DAMNED unit. In either case, then select one of the following abilities for your Chaos Knights unit's weapons to have until the end of the phase: [LETHAL HITS]; [SUSTAINED HITS 1]."
+        }
+      ],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "lords of dread": {
+      "name": "Tyrannical Court",
+      "timing": "Improve the Objective Control characteristic of Chaos Knight Character models from your army by 2. In addition, once per battle round, if your Warlord is on the battlefield, you can use the Claimed for the Dark Gods Stratagem for 0CP.",
+      "effect": "Improve the Objective Control characteristic of Chaos Knight Character models from your army by 2. In addition, once per battle round, if your Warlord is on the battlefield, you can use the Claimed for the Dark Gods Stratagem for 0CP.",
+      "details": [],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "houndpack lance": {
+      "name": "Marked Prey",
+      "timing": "At the start of your Command phase, select one unit from your opponent's army. Until the start of your next Command phase, each time a War Dog model from your army makes an attack that targets that enemy unit, if that unit is visible to the attacking model, that attack has the [Sustained Hits 1] ability.",
+      "effect": "While using the Houndpack Lance Detachment, the following rules apply:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Your army must include 3 or more War Dog units."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "War Dog units from your army have the Battleline keyword."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "When mustering your army, select 3 War Dog units from your army. Until the end of the battle, those units have the Character keyword.*"
+        },
+        {
+          "label": "* Designer'S Note",
+          "text": "* Designer's Note: *This means that the selected units can be given Enhancements and one of them can be selected as your* Warlord."
+        }
+      ],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "infernal lance": {
+      "name": "Malefic Surge",
+      "timing": "In your Command phase, one or more Chaos Knights units from your army can make a Malefic Surge. Each one that does must first take a Leadership test; if that test is failed, that unit suffers D3 mortal wounds. Then, until the start of your next Command phase, that unit is Empowered. While a unit is Empowered, it can use one of the Malefic Surge abilities below. Once that unit has used a Malefic Surge ability, it is no longer Empowered.",
+      "effect": "Unholy Hunger: When a model in this unit makes a Normal, Advance or Fall Back move, until the end of the phase, add 3\" to its Move characteristic.",
+      "details": [
+        {
+          "label": "Diabolic Power",
+          "text": "Diabolic Power: When this unit is selected to shoot or fight, select either the [Lethal Hits] or [Sustained Hits 1] ability. Until the end of the phase, weapons equipped by models in this unit have the selected ability."
+        },
+        {
+          "label": "Unnatural Fortitude",
+          "text": "Unnatural Fortitude: When this unit is selected as the target of an attack, until the end of the phase, select one of the following:"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Models in this unit have a 5+ invulnerable save"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Models in this unit have the Feel No Pain 6+ ability."
+        }
+      ],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "helhunt lance": {
+      "name": "Masters of the Pack",
+      "timing": "If a Titanic Chaos Knights unit from your army has an Aura ability that affects friendly War Dog units, while two or more friendly War Dog models are within range of that Titanic Chaos Knights unit's Aura ability, that Titanic Chaos Knights unit is affected by that Aura ability as well.",
+      "effect": "If a Titanic Chaos Knights unit from your army has an Aura ability that affects friendly War Dog units, while two or more friendly War Dog models are within range of that Titanic Chaos Knights unit's Aura ability, that Titanic Chaos Knights unit is affected by that Aura ability as well.",
+      "details": [],
+      "source": "Chaos - Chaos Knights Library.cat"
+    },
+    "pactbound zealots": {
+      "name": "Marks of Chaos",
+      "timing": "When mustering your army, when you select a Heretic Astartes unit to include in your army, if that unit is not an Epic Hero and does not already have one of the following keywords, you must select one for that unit to gain and note it on your Army Roster: Khorne, Tzeentch, Nurgle, Slaanesh, Chaos Undivided.",
+      "effect": "Each time a unit with one of these keywords gains a weapon ability as the result of a Dark Pact and does not fail the resulting Leadership test, until the end of the phase, that unit gains the associated ability below.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "RESTRICTIONS"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "You cannot select the Khorne keyword for a Psyker unit."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "A Character unit can only be attached to a unit if both units share the same keyword from the list below."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "A unit can only embark within (or start the battle embarked within) a Transport if both of those units share the same keyword from the list above.'"
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "veterans of the long war": {
+      "name": "Focus of Hatred",
+      "timing": "At the start of your Command phase, select one unit from your opponent's army to be your focus of hatred. Until the start of your next Command phase, each time a Heretic Astartes model from your army (excluding Damned models) makes an attack that targets your focus of hatred, you can re-roll the Hit roll.",
+      "effect": "At the start of your Command phase, select one unit from your opponent's army to be your focus of hatred. Until the start of your next Command phase, each time a Heretic Astartes model from your army (excluding Damned models) makes an attack that targets your focus of hatred, you can re-roll the Hit roll.",
+      "details": [],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "deceptors": {
+      "name": "Masters of Misdirection",
+      "timing": "",
+      "effect": "In the Declare Battle Formations step, you can select a number of Legionaries and Cultist Mob units from your army; until the end of the battle, those units, and any Character units attached to them (excluding Epic Heroes), have the Infiltrator ability. The maximum number of units you can select in this way depends on the battle size, as shown below.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Battle Size | Legionaries | Cultist Mobs"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Incursion | Up to 2 units | Up to 2 units"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Strike Force | Up to 3 units | Up to 3 units"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Onslaught | Up to 4 units | Up to 4 units"
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "renegade raiders": {
+      "name": "Raiders and Reavers",
+      "timing": "Ranged weapons equipped by Heretic Astartes models from your army have the [ASSAULT] ability, and each time a Heretic Astartes model from your army makes an attack that targets a unit within range of an objective marker, improve the Armour Penetration characteristic of that attack by 1.",
+      "effect": "Ranged weapons equipped by Heretic Astartes models from your army have the [ASSAULT] ability, and each time a Heretic Astartes model from your army makes an attack that targets a unit within range of an objective marker, improve the Armour Penetration characteristic of that attack by 1.",
+      "details": [],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "dread talons": {
+      "name": "Terror Descends (Aura)",
+      "timing": "Each time an enemy unit within 12\" of one or more Heretic Astartes units from your army takes a Battle-shock test, subtract 1 from the result.",
+      "effect": "In the Battle-shock step of your opponent's Command phase, if an enemy unit that is below its Starting Strength is within 12\" of one or more Heretic Astartes units from your army, that enemy unit must take a Battle-shock test.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Enemy units affected by this Detachment rule do not need to take any other Battle-shock tests in the same phase."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "fellhammer siege host": {
+      "name": "Iron Fortitude",
+      "timing": "Each time a ranged attack targets a Heretic Astartes unit from your army (excluding Damned units), if the Strength characteristic of that attack is greater than the Toughness characteristic of that unit, subtract 1 from the Wound roll.",
+      "effect": "Each time a ranged attack targets a Heretic Astartes unit from your army (excluding Damned units), if the Strength characteristic of that attack is greater than the Toughness characteristic of that unit, subtract 1 from the Wound roll.",
+      "details": [],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "chaos cult": {
+      "name": "Desperate Devotion",
+      "timing": "Each time a Damned unit from your army with the Dark Pacts ability is selected to make a Normal or Advance move or declare a charge (excluding units that arrived from Reserves this turn) it can make a Desperate Pact. If it does, until the end of the phase, add 2\" to the Move characteristic of models in that unit and add 2 to Charge rolls made for that unit.",
+      "effect": "Desperate Pacts",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time a unit makes a Desperate Pact, it must first take a Leadership test; if that test is failed, the unit suffers D3 mortal wounds before any effects of the Desperate Pact are resolved."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "soulforged warpack": {
+      "name": "Debt to the Soulforge",
+      "timing": "Each time a Heretic Astartes Daemon Vehicle model from your army makes a Dark Pact, it can invoke its contract. If it does, subtract 1 from the resulting Leadership test when making that Dark Pact and, until the end of the phase:",
+      "effect": "Each time a model in that unit makes a ranged attack, add 1 to the Wound roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Add 2 to the Attacks characteristic of melee weapons equipped by models in that unit."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "creations of bile": {
+      "name": "Creations of Bile",
+      "timing": "At the start of the battle, select which augmentations are active for Heretic Astartes Infantry models (excluding Damned models) from your army until the end of the battle. To do so, either select one from the list below, or randomly determine two by rolling two D6. If Fabius Bile is your Warlord, when randomly determining your augmentations, you can re-roll one or both of the dice. Duplicated augmentations have no additional effect.",
+      "effect": "Cholinergic Accelerants: Add 1 to the Attacks characteristic of melee weapons equipped by this model.",
+      "details": [
+        {
+          "label": "Hyperadrenal Infusion",
+          "text": "Hyperadrenal Infusion: Add 2\" to the Move characteristic of this model."
+        },
+        {
+          "label": "Paraneural Reactions",
+          "text": "Paraneural Reactions: Improve the Weapon Skill characteristic of melee weapons equipped by this model by 1."
+        },
+        {
+          "label": "Supracutaneous Chitination",
+          "text": "Supracutaneous Chitination: Improve the Toughness characteristic of this model by 1."
+        },
+        {
+          "label": "Macrotensile Sinews",
+          "text": "Macrotensile Sinews: Add 1 to the Strength characteristic of melee weapons equipped by this model."
+        },
+        {
+          "label": "Ophthalmic Enhancement",
+          "text": "Ophthalmic Enhancement: Improve the Ballistic Skill characteristic of ranged weapons equipped by this model by 1."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "cabal of chaos": {
+      "name": "Empyric Wellspring",
+      "timing": "Each time a unit from your army makes a Dark Pact, select one of the following abilities. Your unit has that ability until the end of the phase.",
+      "effect": "Leaping Warpflame",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While this unit is within 9\" of one or more friendly Heretic Astartes Psyker models, improve the Strength characteristic of ranged weapons equipped by models in this unit by 1."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Monstrous Manifestation"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "While this unit is within 9\" of one or more friendly Heretic Astartes Daemon Prince or Heretic Astartes Daemon Prince with Wings models, improve the Armour Penetration characteristic of melee weapons equipped by models in this unit by 1."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "nightmare hunt": {
+      "name": "Terror Made Manifest",
+      "timing": "Each time a Heretic Astartes model from your army makes an attack that targets a unit that is Below Half-strength, add 1 to the Hit roll.",
+      "effect": "In the Battle-shock step of your opponent's Command phase, if an enemy unit that is below its Starting Strength is within 12\" of one or more Heretic Astartes units from your army, that enemy unit must take a Battle-shock test, subtracting 1 from the result. Enemy units affected by this Detachment rule do not need to take any other Battle-shock tests in the same phase.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time an attack targets a Heretic Astartes unit from your army, if the attacking model is Battle-shocked, subtract 1 from the Hit roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Each time a Heretic Astartes model from your army makes an attack that targets a Battle-shocked unit, add 1 to the Wound roll."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "hurons marauders": {
+      "name": "Tyrannical Motivation",
+      "timing": "In your Command phase, select one of the following abilities. Until the start of your next Command phase, each Heretic Astartes Infantry unit from your army has that ability. At the start of each phase, if such a unit is visible to a friendly Huron Blackheart model, until the end of the phase, it has both of the following abilities.",
+      "effect": "Huron's Elite",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time a model in this unit makes an attack, add 1 to the Hit roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Mobile Marauders"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "This unit is eligible to shoot and declare a charge in a turn in which it Fell Back."
+        },
+        {
+          "label": "*Designer'S Note",
+          "text": "*Designer's Note: If a unit is gaining eligibility to shoot and declare a charge in a turn in which it Fell Back as a result of being visible to Huron Blackheart, but after making a Fall Back move it is no longer visible to Huron Blackheart, that unit will not be eligible to shoot in your Shooting phase or to declare a charge in your Charge phase unless it is visible again at the start of the respective phase.*"
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "renegade warband": {
+      "name": "Slaves to None",
+      "timing": "When mustering your army, you cannot use the Cults of the Dark Gods rule.",
+      "effect": "Heretic Astartes models from your army lose the Dark Pacts ability. Ranged weapons equipped by Heretic Astartes models from your army have the [ASSAULT] ability.",
+      "details": [],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "warpstrike champions": {
+      "name": "Warp Portals",
+      "timing": "",
+      "effect": "At the end of your opponent's turn, you can select a number of Heretic Astartes Terminator, Obliterators and Mutilators units from your army (excluding units that are within Engagement Range of one or more enemy units). The maximum number of units you can select depends on the battle size, as follows:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Incursion"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Up to 1 unit"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Up to 2 units"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Onslaught"
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Up to 3 units"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Once you have made your selections, remove those units from the battlefield and place them into Strategic Reserves."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "cult of the arkifane": {
+      "name": "Soul Forge Boons",
+      "timing": "",
+      "effect": "Heretic Astartes Vehicle units from your army gain the Daemon keyword.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Heretic Astartes Vehicle, Lord Discordant and Vashtorr the Arkifane units from your army gain the Soul Forge keyword."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Soul Forge units from your army have a 5+ invulnerable save."
+        }
+      ],
+      "source": "Chaos - Chaos Space Marines.cat"
+    },
+    "flyblown host": {
+      "name": "Verminous Haze",
+      "timing": "",
+      "effect": "Death Guard Infantry units (excluding Poxwalkers units) from your army that are not embarked within a Transport have the Scouts 5\" and Stealth abilities.",
+      "details": [],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "virulent vectorium": {
+      "name": "Worldblight",
+      "timing": "",
+      "effect": "If you control an objective marker at the end of your Command phase and a Death Guard unit from your army (excluding Battle-shocked units) is within range of that objective marker, that objective marker remains under your control until your opponent's Level of Control over that objective marker is greater than yours at the end of a phase. In addition, until you lose control of that objective marker, it has the Nurgle's Gift ability as if it were a Death Guard unit from your army.",
+      "details": [],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "shamblerot vectorium": {
+      "name": "Numberless Horde",
+      "timing": "In your Command phase in each of the following battle rounds, depending on your chosen battle size, add a new Poxwalkers unit with a Starting Strength of 10 to your army, in Strategic Reserves.",
+      "effect": "Incursion",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Battle Rounds 2,3"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Battle Rounds 2,3,4"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Onslaught"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Battle Round 2,3,4,5"
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Poxwalkers unit from your army gain the Battleline keyword."
+        }
+      ],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "death lords chosen": {
+      "name": "Deadly Vectors",
+      "timing": "In your opponent's Command phase, roll 2D6 for each Afflicted enemy unit, subtracting 1 from the result if that unit is Below Half-strength. If the result is 6 or less, that enemy unit suffers D3 mortal wounds.",
+      "effect": "In your opponent's Command phase, roll 2D6 for each Afflicted enemy unit, subtracting 1 from the result if that unit is Below Half-strength. If the result is 6 or less, that enemy unit suffers D3 mortal wounds.",
+      "details": [],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "mortarions hammer": {
+      "name": "Miasmic Bombardment",
+      "timing": "At the start of the battle round, select a number of enemy units more than 12\" away from every model in your army that is on the battle field. Until the end of the battle round, those enemy units are Afflicted. The maximum number of units you can select in this way depends on the battle size, as shown below.",
+      "effect": "Incursion",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Onslaught"
+        }
+      ],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "champions of contagion": {
+      "name": "Manifold Maladies",
+      "timing": "At the start of the battle round, you can select one of the Plagues listed in Nurgle's Gift. Until the end of the battle, that is your chosen Plague instead of any previously chosen Plague.",
+      "effect": "At the start of the battle round, you can select one of the Plagues listed in Nurgle's Gift. Until the end of the battle, that is your chosen Plague instead of any previously chosen Plague.",
+      "details": [],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "tallyband summoners": {
+      "name": "Reverberant Rancidity",
+      "timing": "While a Plague Legions unit from your army is within 7\" of one or more Death Guard units from your army, that Plague Legions unit has the Nurgle's Gift ability.",
+      "effect": "While a Death Guard unit from your army is within 7\" of one or more Plague Legions units from your army, add 3\" to that Death Guard unit's Contagion Range.",
+      "details": [],
+      "source": "Chaos - Death Guard.cat"
+    },
+    "slaaneshs chosen": {
+      "name": "Internal Rivalries",
+      "timing": "At the start of the battle, your Warlord's unit is your army's Favoured Champions. The first time in each player's turn that an Emperor's Children Character unit from your army destroys an enemy unit, after resolving all of its attacks, that Character unit becomes your army's Favoured Champions, replacing the old one.",
+      "effect": "Emperor's Children Character units from your army can ignore any or all modifiers to their Move characteristic and any or all modifiers to Advance and Charge rolls made for them.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time a model in your army's Favoured Champions unit makes an attack, you can re-roll the Wound roll."
+        }
+      ],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "peerless bladesmen": {
+      "name": "Exquisite Swordsmanship",
+      "timing": "Each time an Emperor's Children unit from your army is selected to fight, if it made a Charge move this turn, select one of the abilities below. While resolving those attacks, melee weapons equipped by models in that unit have the ability:",
+      "effect": "[Lethal Hits]",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "[Sustained Hits 1]"
+        }
+      ],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "rapid evisceration": {
+      "name": "Mechanised Murder",
+      "timing": "Each time an Emperor's Children model from your army makes an attack, if it is a Transport model or disembarked from a Transport this turn, re-roll a Hit roll of 1 and re-roll a Wound roll of 1.",
+      "effect": "Each time an Emperor's Children model from your army makes an attack, if it is a Transport model or disembarked from a Transport this turn, re-roll a Hit roll of 1 and re-roll a Wound roll of 1.",
+      "details": [],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "coterie of the conceited": {
+      "name": "Pledges to the Dark Prince",
+      "timing": "At the start of the battle round, if your Warlord is on the battlefield, you must pledge a number to Slaanesh representing how many enemy units will be destroyed this battle round. At the end of the battle round, if the number of enemy units destroyed this battle round is greater than or equal to your pledge, you gain a number of Pact points equal to your pledge. Otherwise, you do not gain any Pact points this battle round and your Warlord model suffers D3 mortal wounds.",
+      "effect": "Emperor's Children units from your army gain a bonus depending on how many Pact points you have gained during the battle, as shown below (these are all cumulative).",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "1+: Each time a model in this unit makes an attack, re-roll a Hit roll of 1."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "3+: Each time a model in this unit makes an attack, re-roll a Wound roll of 1."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "5+: Melee weapons equipped by models in this unit have the [Lethal Hits] and [Sustained Hits 1]] abilities."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "7+: Each time a model in this unit makes an attack, a Critical Hit is scored on an unmodified Hit roll of 5+."
+        }
+      ],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "mercurial host": {
+      "name": "Quicksilver Grace",
+      "timing": "",
+      "effect": "You can re-roll Advance rolls made for Emperor's Children units from your army.",
+      "details": [],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "carnival of excess": {
+      "name": "Daemonic Empowerment",
+      "timing": "- While an Emperor's Children unit from your army is within 6\" of one or more friendly Legions of Excess units, it is Empowered.",
+      "effect": "While a Legions of Excess unit from your army is within 6\" of one or more friendly Emperor's Children units, it is Empowered.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While a unit from your army is Empowered, weapons equipped by models in that unit have the [Sustained Hits 1] ability. If such a weapon already has that ability, each time an attack is made with that weapon, an unmodified Hit roll of 5+ scores a Critical Hit."
+        }
+      ],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "court of the phoenician": {
+      "name": "Sensational Performance",
+      "timing": "Sensational Performance: Each time this unit is selected to fight, if this unit made a Charge move this turn, it can use this ability. If it does, until the end of the phase:",
+      "effect": "Emperor's Children units from your army have the following ability:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "This unit cannot target a unit it was within Engagement Range of at the start of the turn."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "This unit cannot target a unit that was the target of another unit's attack this phase."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Improve the Strength and Armour Penetration characteristics of this unit's melee weapons by 1."
+        }
+      ],
+      "source": "Chaos - Emperor's Children.cat"
+    },
+    "hexwarp thrallband": {
+      "name": "Flow of Magic",
+      "timing": "Certain areas of the battlefield are within your army's Flow of Magic, as follows:",
+      "effect": "Your deployment zone is always within your army's Flow of Magic.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "At the start of any phase, if you control at least half of the objective markers within No Man's Land, until the end of that phase, No Man's Land is within your army's Flow of Magic."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "At the start of any phase, if you control at least half of the objective markers within your opponent's deployment zone, until the end of that phase, your opponent's deployment zone is within your army's Flow of Magic."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time a Thousand Sons model from your army makes a Psychic Attack, re-roll a Wound roll of 1. If such a model is wholly within your army's Flow of Magic, each time it makes a Psychic Attack, add 1 to the Wound roll instead."
+        }
+      ],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "grand coven": {
+      "name": "Kindred Sorcery",
+      "timing": "In your Command phase, you can select one of the abilities listed below to take effect until the start of your next Command phase. You can only select each of these abilities once per battle.",
+      "effect": "Imbued Manifestation",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Add 6\" to the range characteristic of ranged Psychic weapons equipped by Thousand Sons models in your army."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Psychic Maelstrom"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time a Thousand Sons model from your army makes an attack with a Psychic weapon, add 1 to the Wound roll."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Wrath of the Immaterium"
+        },
+        {
+          "label": "Psychic Weapons Equipped By Thousand Sons Models In Your Army Have The",
+          "text": "Psychic weapons equipped by Thousand Sons models in your army have the [Devastating Wounds] ability."
+        }
+      ],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "changehost of deceit": {
+      "name": "Infernal Pacts",
+      "timing": "Daemonic Illusions (Aura): While a friendly Thousand Sons Psyker unit is within 6\" of and visible to this unit, models in that unit have a 4+ invulnerable save against ranged attacks.",
+      "effect": "Scintillating Legions units from your army have the following ability:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Thousand Sons units from your army have the following ability:"
+        },
+        {
+          "label": "Mortal Sorcery (Aura)",
+          "text": "Mortal Sorcery (Aura): While a friendly Scintillating Legions Psyker unit from your army is within 6\" of and visible to this unit, that Scintillating Legions unit has the Cabal of Sorcerers ability."
+        }
+      ],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "warpmeld pact": {
+      "name": "Warpmeld Sacrifice",
+      "timing": "Each time an enemy unit is selected to shoot or fight and one or more Tzeentch Mutant Infantry or Tzeentch Mutant Mounted units from your army are selected as a target of one or more of those attacks, each of those Tzeentch Mutant units can make a Warpmeld Sacrifice. If it does, until the end of the phase, each time an attack targets that unit, subtract 1 from the Wound roll. At the end of the phase, that Tzeentch Mutant unit suffers D3 mortal wounds.",
+      "effect": "Each time a Tzeentch Mutant Infantry or Tzeentch Mutant Mounted* unit from your army is selected to shoot or fight, before selecting its targets, that unit can make a Warpmeld Sacrifice. If it does, until the end of the phase, each time a model in that unit makes an attack, add 1 to the Wound roll. At the end of the phase, that Tzeentch Mutant unit suffers D3 mortal wounds.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Tzaangors units from your army have the Battleline keyword, and while such a unit is not Battle-shocked, add 1 to the Objective Control characteristic of models in that unit."
+        }
+      ],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "rubricae phalanx": {
+      "name": "All is Dust",
+      "timing": "Each time an attack with an unmodified Damage characteristic of 1 is allocated to a Rubricae model from your army, add 1 to any armour saving throw made against that attack.",
+      "effect": "Each time an attack with an unmodified Damage characteristic of 1 is allocated to a Rubricae model from your army, add 1 to any armour saving throw made against that attack.",
+      "details": [],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "warpforged cabal": {
+      "name": "Warpfire Infusion",
+      "timing": "Each time a Thousand Sons Vehicle unit from your army is selected to shoot or fight, apply one of the following when resolving those attacks.",
+      "effect": "If that Vehicle unit is within 6\" of one or more friendly Thousand Sons Psyker models, you can re-roll one Hit roll, one Wound roll and one Damage roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Otherwise, you can re-roll one Hit roll, one Wound roll or one Damage roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Each time a Thousand Sons Vehicle model from your army with the Deadly Demise ability is destroyed while it is within 6\" of one or more friendly Thousand Sons Psyker models, that model's Deadly Demise ability inflicts mortal wounds on a D6 roll of 5+ instead of only a 6."
+        }
+      ],
+      "source": "Chaos - Thousand Sons.cat"
+    },
+    "berzerker warband": {
+      "name": "Relentless Rage",
+      "timing": "Each time a World Eaters unit from your army makes a Charge move, until the end of the turn, add 1 to the Attacks characteristic and add 2 to the Strength characteristic of melee weapons equipped by models in that unit.",
+      "effect": "Each time a World Eaters unit from your army makes a Charge move, until the end of the turn, add 1 to the Attacks characteristic and add 2 to the Strength characteristic of melee weapons equipped by models in that unit.",
+      "details": [],
+      "source": "Chaos - World Eaters.cat"
+    },
+    "cult of blood": {
+      "name": "Idols of Khorne",
+      "timing": "At the start of your Command phase, you can select one of the Idols of Khorne abilities listed below. Until the start of your next Command phase, that ability is active, and its effects apply to all World Eaters Titanic and World Eaters Monster units from your army. You can only select each Idols of Khorne ability once per battle.",
+      "effect": "Idol of Infinite Rage (Aura)",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While a friendly Jakhals or Goremongers unit is within 6\" of this model (or within 9\" if this model is Titanic), each time a model in that unit makes an attack, add 1 to the Hit roll and add 1 to the Wound roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Idol of Burning Wrath (Aura)"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "While a friendly Jakhals or Goremongers unit is within 6\" of this model (or within 9\" if this model is Titanic), add 1\" to the Movement characteristic of models in that unit and add 1 to Advance and Charge rolls made for that unit."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Idol of Blessed Blood (Aura)"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "While a friendly Jakhals or Goremongers unit is within 6\" of this model (or within 9\" if this model is Titanic), models in that unit have a 4+ invulnerable save."
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Jakhals or Goremongers units from your army have the Battleline keyword."
+        }
+      ],
+      "source": "Chaos - World Eaters.cat"
+    },
+    "khorne daemonkin": {
+      "name": "Blood Tithe",
+      "timing": "Each time a Blood Legions or World Eaters unit from your army destroys an enemy unit, roll one D6; on a 3+, you gain 1 Blood Tithe point (BTP). At the start of the Command phase, you can spend 1 or more of your BTP to activate one of the following abilities until the end of the battle.",
+      "effect": "Enraged Abjuration [2BTP]",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Blood Legions and World Eaters models from your army have the Feel No Pain 5+ ability against Psychic Attacks and mortal wounds."
+        },
+        {
+          "label": "Daemonic Rage",
+          "text": "Daemonic Rage [3BTP]"
+        },
+        {
+          "label": "Melee Weapons Equipped By Blood Legions Units From Your Army Have The",
+          "text": "Melee weapons equipped by Blood Legions units from your army have the [Lance] ability."
+        },
+        {
+          "label": "Boon Of Blood",
+          "text": "Boon of Blood [4BTP]"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Blood Legions units from your army have a 4+ invulnerable save."
+        },
+        {
+          "label": "Might Of Khorne",
+          "text": "Might of Khorne [5BTP]"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Blood Legions units from your army gain the Blessings of Khorne ability."
+        }
+      ],
+      "source": "Chaos - World Eaters.cat"
+    },
+    "possessed slaughterband": {
+      "name": "Brazen Fury",
+      "timing": "World Eaters Possessed units in your army have the following ability:",
+      "effect": "Brazen Fury: In your opponent's Shooting phase, each time an enemy unit has shot, if any models from this unit were destroyed as a result of those attacks, this unit can make a Brazen Fury move. To do so, roll one D6: models in this unit move a number of inches up to the result of this roll, but this unit must end that move as close as possible to the closest enemy unit (excluding Aircraft). When doing so, those models can be moved within Engagement Range of that enemy unit. This unit cannot make a Brazen Fury move while Battle-shocked or within Engagement Range of one or more enemy units, and can only make one Brazen Fury move per phase.",
+      "details": [],
+      "source": "Chaos - World Eaters.cat"
+    },
+    "goretrack onslaught": {
+      "name": "Rush to the Fray",
+      "timing": "Each time a World Eaters unit from your army disembarks from a Transport, until then end of the turn, add 1 to Charge rolls made for that unit and that unit's melee weapons have the [Lance] ability.",
+      "effect": "Each time a World Eaters unit from your army disembarks from a Transport, until then end of the turn, add 1 to Charge rolls made for that unit and that unit's melee weapons have the [Lance] ability.",
+      "details": [],
+      "source": "Chaos - World Eaters.cat"
+    },
+    "shield host": {
+      "name": "Martial Mastery",
+      "timing": "At the start of the battle round, you can select one of the bullet points below. If you do, until the start of the next battle round, that bullet point's effects apply.",
+      "effect": "Each time an Adeptus Custodes model from your army with the Martial Ka'tah ability makes a melee attack, a successful unmodified attack roll of 5+ scores a Critical Hit.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Improve the Armour Penetration characteristic of melee weapons equipped by Adeptus Custodes models from your army with the Martial Ka'tah ability by 1."
+        }
+      ],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "talons of the emperor": {
+      "name": "Revered Companions",
+      "timing": "Null Aegis (Aura): While an Adeptus Custodes unit is within 6\" of this unit, models in that unit have the Feel No Pain 5+ ability against Psychic Attacks and mortal wounds.",
+      "effect": "Anathema Psykana units from your army gain the following ability:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "All other Adeptus Custodes units from your army gain the following ability:"
+        },
+        {
+          "label": "Deadly Unity (Aura)",
+          "text": "Deadly Unity (Aura): While an ^Anathema Psykana unit is within 6\" of this unit, each time a model in that Anathema Psykana unit makes an attack, add 1 to the Hit roll."
+        }
+      ],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "null maiden vigil": {
+      "name": "Creeping Dread (Aura)",
+      "timing": "",
+      "effect": "In the Battle-shock step of your opponent's Command phase, if an enemy unit that is either a Psyker unit or below its Starting Strength is within 12\" of one or more Anathema Psykana models from your army, that enemy unit must take a Battle-shock test. If that unit is below Half-strength, it must subtract 1 from its Battle-shock test this phase instead.",
+      "details": [],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "auric champions": {
+      "name": "Assemblage of Might",
+      "timing": "At the start of your Command phase, select one unit from your opponent's army. Until the start of your next Command phase, each time a model in an Adeptus Custodes Character unit from your army makes an attack that targets that enemy unit, add 1 to the Wound roll.",
+      "effect": "At the start of your Command phase, select one unit from your opponent's army. Until the start of your next Command phase, each time a model in an Adeptus Custodes Character unit from your army makes an attack that targets that enemy unit, add 1 to the Wound roll.",
+      "details": [],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "solar spearhead": {
+      "name": "Auric Armour",
+      "timing": "While an Adeptus Custodes Vehicle unit from your army is at Starting Strength, unless that unit is an Aircraft or it is Battle-shocked, add 2 to the Objective Control characteristic of models in that unit.",
+      "effect": "While an Adeptus Custodes Vehicle unit from your army is below Starting Strength, each time a model in that unit makes an attack, re-roll a Hit roll of 1.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While an Adeptus Custodes Vehicle unit from your army is Below Half-strength, each time a model in that unit makes an attack, re-roll a Hit roll of 1 and re-roll a Wound roll of 1."
+        }
+      ],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "lions of the emperor": {
+      "name": "Against All Odds",
+      "timing": "Each time an Adeptus Custodes unit from your army (excluding Vehicles) makes an attack, if there are no other friendly units within 6\" of that unit, add 1 to the Hit roll and add 1 to the Wound roll.",
+      "effect": "Each time an Adeptus Custodes unit from your army (excluding Vehicles) makes an attack, if there are no other friendly units within 6\" of that unit, add 1 to the Hit roll and add 1 to the Wound roll.",
+      "details": [],
+      "source": "Imperium - Adeptus Custodes.cat"
+    },
+    "alien hunters ordo xenos": {
+      "name": "Deathwatch Mission Tactics",
+      "timing": "At the start of your Command phase, you can select one of the Mission Tactics found below. Until the start of your next Command phase, that Mission Tactic is active and its effects apply to all Deathwatch units in your army. Each Mission Tactic can only be selected once per battle.",
+      "effect": "Furor Tactics",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While this Mission Tactic is active, weapons equipped by Deathwatch units from your army have the [SUSTAINED HITS 1] ability."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Malleus Tactics"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "While this Mission Tactic is active, weapons equipped by Deathwatch units from your army have the [LETHAL HITS] ability."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Purgatus Tactics"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "While this Mission Tactic is active, each time a Deathwatch model from your army makes an attack, on a Critical Wound, that attack has the [PRECISION] ability."
+        }
+      ],
+      "source": "Imperium - Agents of the Imperium.cat"
+    },
+    "purgation force ordo hereticus": {
+      "name": "Root Out Heresy",
+      "timing": "Each time an Adeptus Arbites, Inquisitor, Inquisitorial Agents or Ordo Hereticus model from your army makes an attack that targets a Chaos unit containing 5 or more models, that attack has the [SUSTAINED HITS 1] ability.",
+      "effect": "Ranged weapons equipped by Adeptus Arbites, Inquisitor, Inquisitorial Agents and Ordo Hereticus models from your army have the [IGNORES COVER] ability.",
+      "details": [],
+      "source": "Imperium - Agents of the Imperium.cat"
+    },
+    "daemon hunters ordo malleus": {
+      "name": "Destroy the Daemonic",
+      "timing": "Each time an Inquisitor, Inquisitorial Agents or Ordo Malleus model from your army makes an attack, re-roll a Hit roll of 1 and, if the target is a Daemon unit, re-roll a Wound roll of 1 as well.",
+      "effect": "Each time an Inquisitor, Inquisitorial Agents or Ordo Malleus model from your army makes an attack, re-roll a Hit roll of 1 and, if the target is a Daemon unit, re-roll a Wound roll of 1 as well.",
+      "details": [],
+      "source": "Imperium - Agents of the Imperium.cat"
+    },
+    "imperialis fleet": {
+      "name": "At All Costs",
+      "timing": "At the start of your Command phase, you can select one of the following to apply:",
+      "effect": "Eliminate At All Costs",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Select one enemy unit on the battlefield. Until the start of your next Command phase, each time an Agents of the Imperium model from your army makes an attack that targets that enemy unit, add 1 to the Hit roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Acquire At All Costs"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Select one objective marker on the battlefield. Until the start of your next Command phase, while an Agents of the Imperium unit from your army is within range of that objective marker, improve the Leadership and Objective Control characteristics of models in that unit by 1 and models in that unit have a 5+ invulnerable save."
+        }
+      ],
+      "source": "Imperium - Agents of the Imperium.cat"
+    },
+    "veiled blade elimination force": {
+      "name": "Extremis Sanction",
+      "timing": "Officio Assassinorum units from your army can use the Overkill, Soulless Horror and Shieldbreaker abilities twice per battle, instead of once per battle (but cannot use such an ability more than once in the same battle round).",
+      "effect": "When mustering your army, each Officio Assassinorum unit from your army has the relevant Extremis ability, and you must increase the points cost of each of those units by the amount shown. If this causes your army to exceed the points limit for the battle you are playing, you cannot include that unit in your army.",
+      "details": [],
+      "source": "Imperium - Agents of the Imperium.cat"
+    },
+    "siege regiment": {
+      "name": "Artillery Support",
+      "timing": "At the start of the battle round, select one of the following types of artillery support.",
+      "effect": "Creeping Barrage: Roll one D6 for each enemy unit that is more than 12\" from every model from your army that is on the battlefield: On a 5+ until the end of the battle round, that unit is shaken. While a unit is shaken, subtract 2\" from its Move characteristic and subtract 2 from Charge rolls made for it. The maximum number of units that can be shaken by this rule in each battle round depends on the battle size, as shown below.",
+      "details": [
+        {
+          "label": "Incendiary Bombardment",
+          "text": "Incendiary Bombardment: Select a number of enemy units more than 12\" from every model from your army that is on the battlefield. Until the end of the battle round, those enemy units are scattered. While a unit is scattered, it cannot have the Benefit of Cover. The maximum number of units you can select this way depends on the battle size, as shown below."
+        },
+        {
+          "label": "Smoke Shells",
+          "text": "Smoke Shells: Select a number of units from your army. Until the end of the battle round, those units have the Stealth ability. The maximum number of units you can select in this way depends on the battle size, as shown below."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Battle Size"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Maximum Number of Units"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Incursion"
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Onslaught"
+        }
+      ],
+      "source": "Imperium - Astra Militarum - Library.cat"
+    },
+    "mechanised assault": {
+      "name": "Armoured Fist",
+      "timing": "Each time an Astra Militarum model from your army makes a ranged attack in a turn in which it disembarked from a Transport, add 1 to the Wound roll.",
+      "effect": "Each time an Astra Militarum model from your army makes a ranged attack in a turn in which it disembarked from a Transport, add 1 to the Wound roll.",
+      "details": [],
+      "source": "Imperium - Astra Militarum - Library.cat"
+    },
+    "valourstrike lance": {
+      "name": "Bold Gallantry",
+      "timing": "Each time an Imperial Knights unit from your army Advances, until the end of the turn, ranged weapons equipped by Imperial Knights models from your army have the [ASSAULT] ability.",
+      "effect": "Each time an Imperial Knights unit from your army Advances, until the end of the turn, ranged weapons equipped by Imperial Knights models from your army have the [ASSAULT] ability.",
+      "details": [],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "questor forgepact": {
+      "name": "Cogbound Alliance",
+      "timing": "Sacristan Pledge: In your Command phase, one model in this unit regains 1 lost wound. If this unit is within 3\" of one or more friendly TECH-PRIEST models, one model in this unit regains up to D3 lost wounds instead.",
+      "effect": "IMPERIAL KNIGHT units from your army have the following the ability:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "ADEPTUS MECHANICUS units from your army have the following ability:"
+        },
+        {
+          "label": "Divine Inspiration",
+          "text": "Divine Inspiration: Each time a model in this unit makes a ranged attack, re-roll a Hit roll of 1. If this unit is within 6\" of one or more friendly IMPERIAL KNIGHTS units, re-roll a Wound roll of 1 as well."
+        }
+      ],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "gate warden lance": {
+      "name": "Dauntless Defenders",
+      "timing": "At the start of the first battle round, select two objective markers on the battlefield to be your foundations. When you draw a line from any part of one of your foundations to the other, if any part of a model's base (or any part of a models hull, for a model without a base) crosses that line, that model's unit is said to be on your defensive line.",
+      "effect": "While an Imperial Knights unit from your army is on your defensive line, that unit has the Against the Horde ability.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time one of your foundations is removed from the battlefield (e.g. by a Primary Mission rule), just after is is removed, select a new objective marker on the battlefield to be one of your foundations."
+        }
+      ],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "questoris companions": {
+      "name": "Heroes of Legend",
+      "timing": "At the start of your turn, if your current Oath is fulfilled, determine an additional Oath, with the exception that you cannot select a Deed or Quality you have already selected (if you are randomly selecting the Deed and/or Quality and roll any result that you have already selected, select a Deed or Quality you have not already selected instead). If you cannot determine an additional Oath because you have already selected each Deed and each Quality, do not determine an additional Oath.",
+      "effect": "The Qualities from Oaths you have fulfilled continue to apply to all models in your army with the Code Chivalric ability. When the Deed for an additional Oath is completed, you instead gain 1CP, regardless of how you selected the Deed or Quality.",
+      "details": [],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "spearhead at arms": {
+      "name": "Knightly Teachings",
+      "timing": "Each time a model from your army uses its Bondsman ability, if no other model from your army has used that Bondsman ability that turn, you can select up to three friendly Armiger models (instead of one) within 12\" of that model, or within 15\" of that model while your army is Honoured (you still cannot select a model that is already being affected by a Bondsman ability). Until the start of your next Command phase, those models are affected by that Bondsman ability.",
+      "effect": "Each time a model from your army uses its Bondsman ability, if no other model from your army has used that Bondsman ability that turn, you can select up to three friendly Armiger models (instead of one) within 12\" of that model, or within 15\" of that model while your army is Honoured (you still cannot select a model that is already being affected by a Bondsman ability). Until the start of your next Command phase, those models are affected by that Bondsman ability.",
+      "details": [],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "freeblade company": {
+      "name": "Knights of Legend",
+      "timing": "Imperial Knights models from your army have the Feel No Pain 6+ ability. In addition, at the start of your Command phase, each Imperial Knights model from your army regains 1 lost wound.",
+      "effect": "Imperial Knights models from your army have the Feel No Pain 6+ ability. In addition, at the start of your Command phase, each Imperial Knights model from your army regains 1 lost wound.",
+      "details": [],
+      "source": "Imperium - Imperial Knights - Library.cat"
+    },
+    "gladius task force": {
+      "name": "Combat Doctrines",
+      "timing": "At the start of your Command phase, you can select one of the Combat Doctrines listed below. Until the start of your next Command phase, that Combat Doctrine is active and its effects apply to all Adeptus Astartes units from your army. You can only select each Combat Doctrine once per battle.",
+      "effect": "DEVASTATOR DOCTRINE",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "This unit is eligible to shoot in a turn in which it Advanced."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "TACTICAL DOCTRINE"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "This unit is eligible to shoot and declare a charge in a turn in which it Fell Back."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "ASSAULT DOCTRINE"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "This unit is eligible to declare a charge in a turn in which it Advanced."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "unforgiven task force": {
+      "name": "Grim Resolve",
+      "timing": "While an Adeptus Astartes unit from your army is Battle-shocked, change the Objective Control characteristic of models in that unit to 1, instead of 0.",
+      "effect": "In your Command phase, select one Adeptus Astartes unit from your army; until the start of your next Command phase, add 1 to the Objective Control characteristic of models in that unit.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "black spear task force": {
+      "name": "Mission Tactics",
+      "timing": "At the start of your Command phase, you can select one of the Mission Tactics listed below. Until the start of your next Command phase, that Mission Tactic is active and its effects apply to all units from your army with this ability. Each Mission Tactic can only be selected once per battle.",
+      "effect": "FUROR TACTICS",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "While this Mission Tactic is active, weapons equipped by ADEPTUS ASTARTES units from your army have the [SUSTAINED HITS 1] ability."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "MALLEUS TACTICS"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "While this Mission Tactic is active, weapons equipped by ADEPTUS ASTARTES units from your army have the [LETHAL HITS] ability."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "PURGATUS TACTICS"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "While this Mission Tactic is active, each time an ADEPTUS ASTARTES unit from your army makes an attack, if a Critical Hit is scored, that attack has the [PRECISION] ability."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "liberator assault group": {
+      "name": "The Red Thirst",
+      "timing": "Each time an Adeptus Astartes unit from your army is selected to fight, if that unit made a Charge move this turn, until the end of the phase, add 2 to the Strength characteristic and add 1 to the Attacks characteristic of melee weapons equipped by models in that unit.",
+      "effect": "Each time an Adeptus Astartes unit from your army is selected to fight, if that unit made a Charge move this turn, until the end of the phase, add 2 to the Strength characteristic and add 1 to the Attacks characteristic of melee weapons equipped by models in that unit.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "anvil siege force": {
+      "name": "Shield of the Imperium",
+      "timing": "Ranged weapons equipped by Adeptus Astartes models from your army have the [HEAVY] ability. If such a weapon already has this ability, each time an attack is made with that weapon, if the attacking model's unit Remained Stationary this turn, add 1 to the Wound roll.",
+      "effect": "Ranged weapons equipped by Adeptus Astartes models from your army have the [HEAVY] ability. If such a weapon already has this ability, each time an attack is made with that weapon, if the attacking model's unit Remained Stationary this turn, add 1 to the Wound roll.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "ironstorm spearhead": {
+      "name": "Armoured Wrath",
+      "timing": "Once per phase for each Adeptus Astartes unit in your army, you can re-roll one Hit roll, one Wound roll, or one Damage roll made for a model in that unit.",
+      "effect": "Once per phase for each Adeptus Astartes unit in your army, you can re-roll one Hit roll, one Wound roll, or one Damage roll made for a model in that unit.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "firestorm assault force": {
+      "name": "Close-Range Eradication",
+      "timing": "Ranged weapons equipped by Adeptus Astartes models from your army have the [ASSAULT] ability, and each time an attack made such a weapon targets a unit within 12\", add 1 to the Strength characteristic of that attack.",
+      "effect": "Ranged weapons equipped by Adeptus Astartes models from your army have the [ASSAULT] ability, and each time an attack made such a weapon targets a unit within 12\", add 1 to the Strength characteristic of that attack.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "stormlance task force": {
+      "name": "Lightning Assault",
+      "timing": "",
+      "effect": "Adeptus Astartes units from your army are eligible to declare a charge in a turn in which they Advanced or Fell Back.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "vanguard spearhead": {
+      "name": "Shadow Masters",
+      "timing": "Each time a ranged attack targets an Adeptus Astartes unit from your army, unless the attacking model is within 12\", subtract 1 from the Hit roll and the target has the Benefit of Cover against that attack.",
+      "effect": "Each time a ranged attack targets an Adeptus Astartes unit from your army, unless the attacking model is within 12\", subtract 1 from the Hit roll and the target has the Benefit of Cover against that attack.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "1st company task force": {
+      "name": "Extremis-level Threat",
+      "timing": "Once per battle, in your Command phase, you can use this ability. If you do, until the start of your next Command phase, each time a model from your army with the Oath of Moment ability makes an attack that targets your Oath of Moment target, you can re-roll the Wound roll as well.",
+      "effect": "Once per battle, in your Command phase, you can use this ability. If you do, until the start of your next Command phase, each time a model from your army with the Oath of Moment ability makes an attack that targets your Oath of Moment target, you can re-roll the Wound roll as well.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "inner circle task force": {
+      "name": "Vowed Target",
+      "timing": "At the start of your Movement phase, select one of the following:",
+      "effect": "Defensive Footing: Select one objective marker you control. Until the start of your next Movement phase, that objective marker is your Vowed objective marker.",
+      "details": [
+        {
+          "label": "Aggressive Push",
+          "text": "Aggressive Push: Select one or more objective markers you do not control. Until the start of your next Movement phase, each of those objective markers is one of your Vowed objective markers. If a rule refers to a unit or model being within range of your Vowed objective marker, that rule takes effect if that unit or model is within range of one or more of your Vowed objective markers."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Each time a Deathwing Infantry unit from your army makes an attack that targets a unit within range of one or more of your Vowed objective markers, add 1 to the Wound roll."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "company of hunters": {
+      "name": "Masters of Manoeuvre",
+      "timing": "",
+      "effect": "Adeptus Astartes units from your army are eligible to shoot in a turn in which they Advanced or Fell Back.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Adeptus Astartes Mounted units from your army are eligible to shoot and declare a charge in a turn in which they Advanced or Fell Back."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Outrider Squad units from your army gain the Battleline keyword."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "the lost brethren": {
+      "name": "A Noble Death in Combat",
+      "timing": "Each time a Death Company model from your army makes a melee attack, re-roll a Wound roll of 1 if that model's unit is below Starting Strength; if that model's unit is Below Half-strength, you can re-roll the Wound roll instead.",
+      "effect": "Each time a Death Company model from your army makes a melee attack, re-roll a Wound roll of 1 if that model's unit is below Starting Strength; if that model's unit is Below Half-strength, you can re-roll the Wound roll instead.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "the angelic host": {
+      "name": "Upon Wings of Fire",
+      "timing": "",
+      "effect": "At the end of your opponent's turn, you can select a number of Adeptus Astartes Jump Pack units from your army (excluding units that are within Engagement Range of one or more enemy units). The maximum number of units you can select depends on the battle size, as follows:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Incursion"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Up to 1 unit"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Up to 2 units"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Onslaught"
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Up to 3 units"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Once you have made your selections, remove those units from the battlefield and place them into Strategic Reserves. In the Reinforcements step of your next Movement phase, set each of those units up using their Deep Strike ability."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "lions blade task force": {
+      "name": "In the Lion's Claws",
+      "timing": "- Each time an enemy unit (excluding Monsters and Vehicles) within Engagement Range of one or more Ravenwing units from your army Falls Back, all models in that enemy unit must take a Desperate Escape test. When doing so, if that enemy unit is Battle-shocked, subtract 1 from each of those tests.",
+      "effect": "Each time a Deathwing unit from your army declares a charge, if one or more targets of that charge are within Engagement Range of one or more Ravenwing units from your army, add 2 to the Charge roll.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "librarius conclave": {
+      "name": "Psychic Disciplines",
+      "timing": "At the start of the battle round, select one of the following Psychic Disciplines. Until the end of the battle round, that Psychic Discipline is active and its effects apply to all Adeptus Astartes Psyker units from your army.",
+      "effect": "Biomancy Discipline",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Add 2\" to the Move characteristic of models in this unit."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Divination Discipline"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time a model in this unit makes an attack, re-roll a Hit roll of 1 and re-roll a Wound roll of 1."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Pyromancy Discipline"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Each time a ranged attack made by a model in this unit targets an enemy unit within 12\", improve the Armour Penetration characteristic of that attack by 1."
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Telekinesis Discipline"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Each time a ranged attack targets this unit, subtract 1 from the Strength characteristic of that attack."
+        },
+        {
+          "label": "Detalle 8",
+          "text": "Telepathy Discipline"
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "wrathful procession": {
+      "name": "Wrathful Procession",
+      "timing": "At the start of the battle round, you can select one of the Litanies listed below. If you do, until the end of the battle round, that Litany is active and its effects apply to all Adeptus Astartes Infantry and Adeptus Astartes Mounted units from your army.",
+      "effect": "Chorus of Relentless Hate",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Add 2\" to the Move characteristic of models in this unit and add 1 to Advance rolls made for it."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Rite of Perfervid Wrath"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Add 1 to the Strength characteristic of melee weapons equipped by models in this unit."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Chant of Deathless Devotion"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Models in this unit have a 5+ invulnerable save against ranged attacks."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "champions of fenris": {
+      "name": "The Great Wolf Watches",
+      "timing": "While Adeptus Astartes Terminator units from your army are not Battle-shocked, add 1 to the Objective Control characteristic of models in those units.",
+      "effect": "At the end of your opponent's Charge phase, each Adeptus Astartes Infantry and Adeptus Astartes Walker unit from your army that is within 3\" of one or more enemy units and would be eligible to declare a charge against one or more of those units can declare a charge against one or more of those units, and you resolve that charge as if it were your Charge phase. If that charge is successful, your unit does not receive any Charge bonus this turn.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "angelic inheritors": {
+      "name": "Legacy of the Angel",
+      "timing": "At the start of the first battle round, select two of the Angelic Legacy abilities listed below. Until the end of the battle, those Angelic Legacy abilities are active and their effects apply to all Adeptus Astartes Character units from your army.",
+      "effect": "Sanguinary Grace: This unit is eligible to shoot and declare a charge in a turn in which it Fell Back.",
+      "details": [
+        {
+          "label": "Carmine Wrath",
+          "text": "Carmine Wrath: Each time a model in this unit makes an attack, re-roll a Hit roll of 1 and re-roll a Wound roll of 1."
+        },
+        {
+          "label": "Their Appointed Hour",
+          "text": "Their Appointed Hour: You can re-roll Advance and Charge rolls made for this unit."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "wrath of the rock": {
+      "name": "Dutiful Tenacity",
+      "timing": "Each time an attack targets an Adeptus Astartes Infantry or Adeptus Astartes Mounted unit from your army, if the Strength characteristic of that attack is greater than the Toughness characteristic of that unit, subtract 1 from the Wound roll.",
+      "effect": "Each time an attack targets an Adeptus Astartes Infantry or Adeptus Astartes Mounted unit from your army, if the Strength characteristic of that attack is greater than the Toughness characteristic of that unit, subtract 1 from the Wound roll.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "saga of the hunter": {
+      "name": "Pack's Quarry",
+      "timing": "Each time a model in a Space Wolves unit from your army makes a melee attack that targets an enemy unit, if that enemy unit is within Engagement Range of one or more other Adeptus Astartes units from your army, or if the attacking unit contains more models than that enemy unit.",
+      "effect": "Add 1 to the Hit roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "If your Saga is completed(see below), add 1 to the Wound roll as well."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Saga of the Hunter"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "At the start of the first battle round your Quarry tally is 0. Each time an ADEPTUS ASTARTES unit from your army fights, after all those attacks have been resolved, add 1 to your Quarry tally for each enemy unit destroyed by those attacks."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Once your Quarry tally is equal to or greater than the number shown in the table below(depending on the battle size), you Saga is completed."
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Incursion"
+        },
+        {
+          "label": "Detalle 6",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 7",
+          "text": "Onslaught"
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "saga of the bold": {
+      "name": "Heroes All",
+      "timing": "Each time an Adeptus Astartes unit from your army is selected to shoot or fight, apply one of the following when resolving those attacks",
+      "effect": "If you Saga is completed (see below), you can re-roll one Hit roll, one Wound roll, and one Damage roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Otherwise, if that unit is a Space Wolves Character unit, you can re-roll one Hit roll, one Wound roll, or one Damage roll."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Saga of the Bold"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time a Space Wolves Character unit from your army does one of the following, that unit achieves a Boast. Once three or more different Boasts have been achieved by units from your army, your saga is completed"
+        },
+        {
+          "label": "Your Hide As A Trophy",
+          "text": "Your Hide as a Trophy: That unit destroys your Oath of Moment target"
+        },
+        {
+          "label": "Slay Them All",
+          "text": "Slay Them All: That unit destroys your Oath of Moment target, and that is the second Oath of Moment target destroyed by that unit in this battle."
+        },
+        {
+          "label": "Overrun Their Position",
+          "text": "Overrun Their Position: At the end of either player's turn, that unit is wholly within your opponent's deployment zone."
+        },
+        {
+          "label": "Hold The Line",
+          "text": "Hold the Line: From the second battle round onwards, at the end of your Command phase, that unit is within range of an objective marker you control that is not within your deployment zone."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "saga of the beastslayer": {
+      "name": "Legendary Slayers",
+      "timing": "Each time an Adeptus Astartes model from your army makes an attack, if that attack targets a Character, Monster or Vehicle unit or if your Saga is completed(see below), that attack has the [LETHAL HITS] ability.",
+      "effect": "Saga of the Beastslayer",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "At the start of the first battle round, your Beastslayer tally is 0, and you determine your Beastslayer target by halving the number of units from your opponent's army (including those embarked within Transports) that have one or more of the following keywords (rounding up): Character, Monster, Vehicle."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Each time an Adeptus Astartes unit from your army shoots or fights, after all of those attacks have been resolved, add 1 to your Beastslayer tally for each enemy unit with one or more of the keywords destroyed by those attacks: Character, Monster, Vehicle."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Once your Beastslayer tally is equal to or greater than your Beastslayer target your Saga is completed."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "companions of vehemence": {
+      "name": "Righteous Fervour",
+      "timing": "",
+      "effect": "You can re-roll Advance and Charge rolls made for Adeptus Astartes unit from your army.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "vindication task force": {
+      "name": "Purge and Sanctify",
+      "timing": "- Each time an attack targets an Ancient unit from your army, if that unit is within range of one or more objective markers and the Strength characteristic of that attack is greater than the Toughness characteristic of that unit, subtract 1 from the Wound roll.",
+      "effect": "Each time a Crusader Squad unit from your army makes a Righteous Zeal move, that unit can end that move as close as possible to the closest objective marker instead of as close as possible to the closest enemy unit.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "godhammer assault force": {
+      "name": "Shock and Awe",
+      "timing": "- Each time an Adeptus Astartes unit from your army declares a charge, if it disembarked from a Transport this turn, after selecting the targets of that charge, select one of those targets; that enemy unit must take a Battle-shock test.",
+      "effect": "Each time an Adeptus Astartes unit from your army makes a melee attack, if it disembarked from a Transport this turn, add 1 to the Hit roll.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "forgefathers seekers": {
+      "name": "Vulkan's Quest",
+      "timing": "Ranged weapons equipped by Adeptus Astartes models from your army have the [ASSAULT] ability, and each time an attack made such a weapon targets a unit within 12\", add 1 to the Strength characteristic of that attack.",
+      "effect": "Seeker's Companions",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "If your army includes Vulkan He'stan, during your turn, each Infernus Squad unit from your army is eligible to do one of the following"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Start to perform an Action in a turn in which it Advanced"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Shoot in a turn in which it started to perform an Action"
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "emperors shield": {
+      "name": "Wrath of Dorn",
+      "timing": "Each time a model from your army with the Oath of Moment ability makes an attack that targets your Oath of Moment target, you can re-roll a Wound roll of 1.",
+      "effect": "Each time a model in a Darnath Lysander unit from your army makes an attack that targets your Oath of Moment target, you can re-roll the Wound roll.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "shadowmark talon": {
+      "name": "Masters of Shadow",
+      "timing": "Each time a ranged attack targets an Adeptus Astartes unit from your army, unless the attacking model is within 12\", subtract 1 from the Hit roll and the target has the Benefit of Cover against that attack.",
+      "effect": "Unparalled Tactician",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Once per battle round, if an Aethon Shaan model from your army is on the battlefield, you can use the Into Darkness Stratagem for 0CP."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "hammer of avernii": {
+      "name": "Calculated Annihilation",
+      "timing": "Each time a model from your army with the Oath of Moment ability makes an attack that targets your Oath of Moment target, you can re-roll a Wound roll of 1.",
+      "effect": "RECALCULATING",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Once per battle round, after your Oath of Moment target is destroyed, if a Caanok Var model from your army is on the battlefield, select one enemy unit visible to that model. That enemy unit becomes your Oath of Moment target until you select a new one."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "spearpoint task force": {
+      "name": "Storm-Swift Onslaught",
+      "timing": "",
+      "effect": "Adeptus Astartes units from your army are eligible to declare a charge in a turn in which they Advanced or Fell Back.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Wrath of the First Khan"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "At the end of the Fight phase, if a Suboden Khan unit from your army destroyed one or more enemy units this phase and is not within Engagement Range of one or more enemy units, that unit can make a Normal move of up to 6\"."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "blade of ultramar": {
+      "name": "Mastered Doctrines",
+      "timing": "At the start of up to three of your Command phases, you can select one of the Combat Doctrines listed below. Until the start of your next Command phase, that Combat Doctrine is active and its effects apply to all Adeptus Astartes units from your army. You cannot select a Combat Doctrine you have already selected this battle, unless a friendly Marneus Calgar model is on the battlefield.",
+      "effect": "DEVASTATOR DOCTRINE",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "This unit is eligible to shoot in a turn in which it Advanced."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "TACTICAL DOCTRINE"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "This unit is eligible to shoot and declare a charge in a turn in which it Fell Back."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "ASSAULT DOCTRINE"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "This unit is eligible to declare a charge in a turn in which it Advanced."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "saga of the great wolf": {
+      "name": "Master of Wolves",
+      "timing": "At the start of your Command phase, you can select one of the Hunting Packs listed below. Until the start of your next Command phase, that Hunting Pack is active and its effects apply to all |Adeptus Astartes units from your army. You can only select each Hunting Pack once per battle.",
+      "effect": "Encircling Jaws: This unit can re-roll Advance rolls and Charge rolls.",
+      "details": [
+        {
+          "label": "Hunter'S Eye",
+          "text": "Hunter's Eye: Each time a model in this unit makes a ranged attack, add 1 to the Hit roll."
+        },
+        {
+          "label": "Ferocious Strike",
+          "text": "Ferocious Strike: Each time this unit is selected to fight, select either the [LETHAL HITS] or [SUSTAINED HITS 1] ability. Until the end of the phase, weapons equipped by models in this unit have the selected ability."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Howling Onslaught"
+        },
+        {
+          "label": "Detalle 4",
+          "text": "Once per battle, when selecting a Hunting Pack for the Master of Wolves Detachment rule (see above), if a Logan Grimnar model from your army is on the battlefield, you can select a Hunting Pack you have already selected this battle"
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "rage cursed onslaught": {
+      "name": "Maddened Ferocity",
+      "timing": "Each time an Adeptus Astartes model from your army makes a melee attack, re-roll a Wound roll of 1.",
+      "effect": "Each time an Adeptus Astartes unit from your army is selected to fight, if that unit made a Charge move this turn, until the end of the phase, add 1 to the Attacks characteristic of melee weapons equipped by models in that unit. If your unit is Battle-shocked, add 2 to the Attacks characteristic of melee weapons equipped by models in that unit instead.",
+      "details": [],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "bastion task force": {
+      "name": "Interlocking Tactics",
+      "timing": "Each time an Adeptus Astartes Battleline unit from your army is selected to attack, after resolving those attacks, select one enemy unit hit by one or more of those attacks. Until the end of the turn, that enemy unit is auspex scanned. Each time an Adeptus Astartes model from your army makes an attack that targets an auspex scanned unit, re-roll a Hit roll of 1.",
+      "effect": "Adeptus Astartes Battleline units from your army:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Are eligible to shoot and declare a charge in a turn in which they Advanced or Fell Back."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Are eligible to start to perform an Action in a turn in which they Advanced or Fell Back."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "orbital assault force": {
+      "name": "Rapid-drop Deployment",
+      "timing": "At the start of the Declare Battle Formations step, select a number of Adeptus Astartes units (excluding Titanic units) from your army based on the battle size, as shown below. Models in those units have the Deep Strike ability.",
+      "effect": "Incursion",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Strike Force"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Onslaught"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time an Adeptus Astartes model from your army makes an attack, if it was set up on the battlefield this turn, re-roll a Wound roll of 1. If it disembarked from a Drop Pod this turn, re-roll a Hit roll of 1 as well."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "reclamation force": {
+      "name": "Oath of Reclamation",
+      "timing": "- Each time an Adeptus Astartes model from your army makes a melee attack that targets a unit within range of an",
+      "effect": "objective marker, improve the Armour Penetration characteristic of that attack by 1.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time an attack targets an Adeptus Astartes unit from your army, if your unit is within range of an objective"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "marker that you controlled at the start of the phase and if the Strength characteristic of that attack is greater"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "than the Toughness characteristic of your unit or your unit has the Titus keyword, subtract 1 from the Wound roll."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "ceramite sentinels": {
+      "name": "Adaptive Defence",
+      "timing": "Each time an Adeptus Astartes model from your army makes an attack, if that model's unit is within a terrain feature, re-roll a Hit roll of 1 and re-roll a Wound roll of 1.",
+      "effect": "Adeptus Astartes units from your army gain the Entrenched keyword while all of the following are true:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "That unit is within a terrain feature."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "That unit was not set up on the battlefield this turn."
+        },
+        {
+          "label": "Detalle 3",
+          "text": "No model in that unit has moved more than 3\" this turn."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "armoured speartip": {
+      "name": "Rapid Deployment",
+      "timing": "Each time an Adeptus Astartes unit from your army disembarks from a Transport (excluding Fly) that made a Normal or Advance move this phase (excluding those that arrived from Strategic Reserves), that disembarked unit can",
+      "effect": "make a Normal move of up to D6\", or a Normal move of up to D3+3\" instead if that Transport is a Heavy Transport",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "(see below)."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Adeptus Astartes Transport units from your army (excluding FLY) that have a Wounds characteristic of 14+ have the Heavy Transport keyword."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "headhunter task force": {
+      "name": "Target Sighted",
+      "timing": "Each time a Tank Ace unit from your army (see below) Advances, do not make an Advance roll for it. Instead, until the end of the phase, add 6\" to the Move characteristic of models in that unit. Each time a Tank Ace unit from your",
+      "effect": "army shoots in your Shooting phase, if that unit did not Advance this turn, you can re-roll the Damage roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Adeptus Astartes Vehicle units from your army (excluding Fortifications, Drop Pods, Walkers and units that can Fly)"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "have the Tank Ace keyword. In the Muster Armies step, you can select up to three Tank Ace units from your"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "army to gain the Character keyword."
+        },
+        {
+          "label": "Designer'S Note",
+          "text": "Designer's Note: This means that the selected units can be given enhancements, and one of them can be selected as your Warlord."
+        }
+      ],
+      "source": "Imperium - Space Marines.cat"
+    },
+    "hearthband": {
+      "name": "Methodical Annihilation",
+      "timing": "Each time a Leagues of Votann model from your army makes an attack with a weapon that targets the closest eligible target or a target that is within Engagement Range of that model's unit:",
+      "effect": "Re-roll a Wound roll of 1.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "If your unit is a Kahl, Einhyr Hearthguard or Uthar the Destined unit, improve the Armour Penetration characteristic of that attack by 1."
+        }
+      ],
+      "source": "Leagues of Votann.cat"
+    },
+    "persecution prospect": {
+      "name": "Assailed From Every Angle",
+      "timing": "Guerrilla Adepts: In your Shooting phase, just after this unit is selected to shoot, this unit can use this ability. If it does, select one enemy unit (excluding Monsters and Vehicles). Until the end of the phase, attacks made by models in this unit can only attack that enemy unit (and only if it is an eligible target) and, after resolving those attacks, if one or more of those attacks hit that enemy unit, until the start of your next Shooting phase, that enemy unit is assailed (this simply labels that unit for the purposes of this ability and some Enhancements or Stratagems). If that unit is already assailed, until the start of your next Shooting phase, it is also pinned. While a unit is pinned, subtract 2\" from its Move characteristic and subtract 2 from Charge rolls made for it.",
+      "effect": "Leagues of Votann units from your army have the following ability:",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "needga rd oathband": {
+      "name": "Martial Leverage",
+      "timing": "Each time an enemy unit is destroyed, you gain 1YP.",
+      "effect": "Each time an enemy unit is destroyed, you gain 1YP.",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "hearthfyre arsenal": {
+      "name": "Optimal Application",
+      "timing": "At the end of your Command phase, you gain 1YP for each objective marker you control that is not within your deployment zone and has one or more Iron-Master and/or Memnyr Strategist models from your army within range of it (to a maximum of 2YP gained from this Detachment rule per turn).",
+      "effect": "In your Shooting phase, each time a Brokhyr, Ironkin Steeljacks or Arkanyst Evaluator unit from your army is selected to shoot, you can spend 1YP. If you do, until the end of the phase, each time a model in that unit makes an attack, re-roll a Hit roll of 1.",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "d lve assault shift": {
+      "name": "Fury from the Delve",
+      "timing": "",
+      "effect": "Cthonian Beserks units from your army have the Deep Strike ability.",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "brandfast oathband": {
+      "name": "Mobile Sensor Relays",
+      "timing": "Firebase Control (Aura): While a friendly Leagues of Votann Infantry unit is wholly within 6\" of this Transport, ranged weapons equipped by models in that Infantry unit have the [sustained hits 1] ability.",
+      "effect": "Leagues of Votann Transport units from your army have the following ability:",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "mercenary oathband": {
+      "name": "Ruthless Reinvestment",
+      "timing": "Your Leagues of Votann units do not have the Hostile Acquisition or Fortify Takeover abilities except as described in this rule. At the start of the battle, your Leagues of Votann units have the Hostile Acquisition ability. At the end of your Command phase, you can spend 3YP. If you do, Leagues of Votann units from your army lose the Hostile Acquisition ability and gain the Fortify Takeover ability, or vice versa.",
+      "effect": "Your Leagues of Votann units do not have the Hostile Acquisition or Fortify Takeover abilities except as described in this rule. At the start of the battle, your Leagues of Votann units have the Hostile Acquisition ability. At the end of your Command phase, you can spend 3YP. If you do, Leagues of Votann units from your army lose the Hostile Acquisition ability and gain the Fortify Takeover ability, or vice versa.",
+      "details": [],
+      "source": "Leagues of Votann.cat"
+    },
+    "invasion fleet": {
+      "name": "Hyper Adaptions",
+      "timing": "At the start of the first battle round, select one of the following Hyper-adaptations to be active for Tyranids units from your army until the end of the battle:",
+      "effect": "SWARMING INSTINCTS",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time a Tyranids model with this Hyper-adaptation makes an attack that targets an enemy Infantry or Swarm unit, that attack has the [SUSTAINED HITS 1] ability."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "HYPER-AGGRESSION"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Each time a Tyranids model with this Hyper-adaptation makes an attack that targets an enemy Monster or Vehicle unit, that attack has the [LETHAL HITS] ability."
+        },
+        {
+          "label": "Detalle 4",
+          "text": "HIVE PREDATORS"
+        },
+        {
+          "label": "Detalle 5",
+          "text": "Each time a Tyranids model with this Hyper-adaptation makes an attack that targets an enemy Character unit, if a Critical Hit is scored, that attack has the [PRECISION] ability."
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "assimilation swarm": {
+      "name": "Feed the Swarm",
+      "timing": "In your Command phase, each Harvester unit from your army can Regenerate one friendly Tyranids unit that is within 6\" of it. A unit can only be regenerated once per phase. Each time a unit regenerates do one of the following:",
+      "effect": "One model in that unit regains up to D3+1 lost wounds",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "One destroyed Infantry model (excluding Characters) is returned to that unit with its full wounds. If that unit is an Endless Multitude unit, return up to 3 destroyed models are returned instead."
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "crusher stampede": {
+      "name": "Enraged Behemoths",
+      "timing": "Each time a Tyranids Monster model from your army makes an attack, add 1 to the Hit roll if that model's unit is below its Starting Strength, and add 1 to the Wound roll as well if that model's unit is Below Half-strength. In addition, while a Tyranids Monster unit from your army (excluding Battle-shocked units) is at its Starting Strength, add 2 to the Objective Control characteristic of models in that unit.",
+      "effect": "Each time a Tyranids Monster model from your army makes an attack, add 1 to the Hit roll if that model's unit is below its Starting Strength, and add 1 to the Wound roll as well if that model's unit is Below Half-strength. In addition, while a Tyranids Monster unit from your army (excluding Battle-shocked units) is at its Starting Strength, add 2 to the Objective Control characteristic of models in that unit.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "synaptic nexus": {
+      "name": "Synaptic Imperitives",
+      "timing": "At the start of the battle round, you can select one of the Synaptic Imperatives shown below. Until the end of the battle round, that Synaptic Imperative is active for your army and while a Tyranids unit from your army is within Synapse Range of your army, it will benefit from it. Each Synaptic Imperative can only be selected once per battle.",
+      "effect": "Synaptic Augmentation: While this unit is within Synapse Range of your army, models in this unit have a 5+ invulnerable save.",
+      "details": [
+        {
+          "label": "Surging Vitality",
+          "text": "Surging Vitality: While this unit is within Synapse Range of your army, add 1 to Advance and Charge rolls made for this unit."
+        },
+        {
+          "label": "Goaded To Slaughter",
+          "text": "Goaded to Slaughter: While this unit is within Synapse Range of your army, each time a model in this unit makes a melee attack, add 1 to the Hit roll"
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "unending swarm": {
+      "name": "Insurmountable Odds",
+      "timing": "Each time an enemy unit is selected to shoot, after that unit has finished making its attacks, if one or more models from one or more Endless Multitude units from your army were destroyed as a result of those attacks, each such unit can make a Surge move. To do so, roll one D6: that unit can be moved a distance in inches up to the result, but that unit must end that move as close as possible to the closest enemy unit (excluding Aircraft). When doing so, those models can be moved within Engagement Range of enemy units. A unit cannot make a Surge Move while Battle-shocked",
+      "effect": "Each time an enemy unit is selected to shoot, after that unit has finished making its attacks, if one or more models from one or more Endless Multitude units from your army were destroyed as a result of those attacks, each such unit can make a Surge move. To do so, roll one D6: that unit can be moved a distance in inches up to the result, but that unit must end that move as close as possible to the closest enemy unit (excluding Aircraft). When doing so, those models can be moved within Engagement Range of enemy units. A unit cannot make a Surge Move while Battle-shocked",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "vanguard onslaught": {
+      "name": "Vanguard Prime",
+      "timing": "",
+      "effect": "Deathleaper loses Hunter Organism rule and can be your Warlord.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "warrior bioform onslaught": {
+      "name": "Keywords",
+      "timing": "Tyranid Warriors With Ranged Bio Weapons and Tyranid Warriors With Melee Bio Weapons units from your army gain the Tyranid Warriors and Battleline keywords, and while such a unit is not Battle-shocked, Tyranid Warriors models in that unit have an Objective Control characteristic of 3.",
+      "effect": "Tyranid Warriors With Ranged Bio Weapons and Tyranid Warriors With Melee Bio Weapons units from your army gain the Tyranid Warriors and Battleline keywords, and while such a unit is not Battle-shocked, Tyranid Warriors models in that unit have an Objective Control characteristic of 3.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "subterranean assault": {
+      "name": "Keywords",
+      "timing": "",
+      "effect": "Mawloc and Trygon units from your army have the Burrower keyword.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "In the Muster Armies step, you can select up to 2 Trygon models from your army. The selected units gain the Character keyword."
+        },
+        {
+          "label": "Designer'S Note",
+          "text": "Designer's Note: *This means that the selected models can be given Enhancements and one of them can be selected as your Warlord.*"
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "tyranid attack": {
+      "name": "Forming Boarding Squads",
+      "timing": "",
+      "effect": "The following units do not split into separate units in the Form Boarding Squads step:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Hormagaunts"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Neurogaunts"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Termagants"
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "boarding swarm": {
+      "name": "Forming Boarding Squads",
+      "timing": "",
+      "effect": "Do not split Hormagaunts into separate units in the Form Boarding Squads step.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "biotide": {
+      "name": "Forming Boarding Squads",
+      "timing": "",
+      "effect": "The following units do not split into separate units in the Form Boarding Squads step:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Hormagaunts"
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Neurogaunts"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "Termagants"
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "host of ascension": {
+      "name": "A Perfect Ambush",
+      "timing": "Each time a GENESTEALER CULTS unit from your army is set up on the battlefield as Reinforcements, until the end of your next Fight phase, weapons equipped by models in that unit have the [SUSTAINED HITS 1] and [IGNORES COVER] abilities",
+      "effect": "Each time a GENESTEALER CULTS unit from your army is set up on the battlefield as Reinforcements, until the end of your next Fight phase, weapons equipped by models in that unit have the [SUSTAINED HITS 1] and [IGNORES COVER] abilities",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "xenocreed congregation": {
+      "name": "Unquestioning Fanaticism",
+      "timing": "For Each ACOLYTE HYBRIDS, HYBRID METAMORPHS, and NEOPHYTE HYBRID unit from your army, while one or more CHARACTER models are leading that unit, you can re-roll Advance and Charge rolls made for it. If that CHARACTER model is a MAGUS, PRIMUS, or ACOLYTE ICONWARD, that model has the Feel No Pain 3+ ability while leading that unit.",
+      "effect": "For Each ACOLYTE HYBRIDS, HYBRID METAMORPHS, and NEOPHYTE HYBRID unit from your army, while one or more CHARACTER models are leading that unit, you can re-roll Advance and Charge rolls made for it. If that CHARACTER model is a MAGUS, PRIMUS, or ACOLYTE ICONWARD, that model has the Feel No Pain 3+ ability while leading that unit.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "biosanctic broodsurge": {
+      "name": "Hypermorphic Fury",
+      "timing": "Add 1 to Charge rolls made for Aberrants, Biophagus and Purestrain Genestealers units from your army. In addition, each time such a unit is selected to fight, if it made a Charge move this turn, until the end of the phase, add 1 to the Attacks characteristic of melee weapons equipped by the models in that unit.",
+      "effect": "Add 1 to Charge rolls made for Aberrants, Biophagus and Purestrain Genestealers units from your army. In addition, each time such a unit is selected to fight, if it made a Charge move this turn, until the end of the phase, add 1 to the Attacks characteristic of melee weapons equipped by the models in that unit.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "outlander claw": {
+      "name": "Rapid Takeover",
+      "timing": "While a GENESTEALER CULTS MOUNTED or GENESTEALER CULTS VEHICLE model from your army is not Battle-shocked, add 1 to its Objective Control characteristic. In addition, at the end of your Command phase, if one or more ATALAN JACKALS units from your army are within range of an objective marker you control, that objective marker remains under your control until your opponent's Level of Control over that objective marker is greater than yours at the end of a phase.",
+      "effect": "While a GENESTEALER CULTS MOUNTED or GENESTEALER CULTS VEHICLE model from your army is not Battle-shocked, add 1 to its Objective Control characteristic. In addition, at the end of your Command phase, if one or more ATALAN JACKALS units from your army are within range of an objective marker you control, that objective marker remains under your control until your opponent's Level of Control over that objective marker is greater than yours at the end of a phase.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "brood brother auxilia": {
+      "name": "Brood Brothers",
+      "timing": "You can include Astra Militarum units in your army, even though they do not have the Genestealer Cult Faction keyword. The combined points cost of such units you can include in your army is:",
+      "effect": "Incursion: Up to 500 pts",
+      "details": [
+        {
+          "label": "Strike Force",
+          "text": "Strike Force: Up to 1000 pts"
+        },
+        {
+          "label": "Onslaught",
+          "text": "Onslaught: Up to 1500 pts"
+        },
+        {
+          "label": "Detalle 3",
+          "text": "A Genestealer Cult model must be your Warlord, and Astra Militarum models from your army lose the Voice of Command ability if they have it. You cannot include units with any of the following keywords in your army using this rule: Aircraft; Commisar; Epic Hero; Militarum Tempestus; Ogryn; Ratling; Tech-Priest Enginseer; Ministorum Priest."
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "final day": {
+      "name": "Psionic Parasitism",
+      "timing": "At the end of your Movement phase, for each TYRANIDS SYNAPSE unit from your army, you can select one friendly GENESTEALER CULTS unit (excluding PURESTRAIN GENESTEALER and PATRIARCH units) and one friendly TYRANIDS unit each within 9\" of and visible to that SYNAPSE unit. If you do, that GENESTEALER CULTS unit from your army suffers D3+1 mortal wounds and one model in the selected TYRANIDS unit regains up to that many lost wounds and until the start of your next Movement phase, each time a model in the selected TYRANIDS unit makes an attack, add 1 to the Hit roll.",
+      "effect": "TYRANIDS units from your army have the following ability:",
+      "details": [
+        {
+          "label": "Catalyst (Aura)",
+          "text": "Catalyst (Aura): While an enemy unit is within 6\" of this unit, each time a friendly GENESTEALER CULTS unit makes an attack that targets that enemy unit, add 1 to the Hit roll."
+        }
+      ],
+      "source": "Library - Tyranids.cat"
+    },
+    "cult unveiled": {
+      "name": "Forming Boarding Squads",
+      "timing": "",
+      "effect": "Do not split Neophyte Hybrids into separate units in the Form Boarding Squads step.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "genespawn onslaught": {
+      "name": "Blessed Visages",
+      "timing": "Each time an enemy unit declares a charge that targets one or more Genestealer Cults units from your army, that enemy unit must take a Leadership test. If failed, until the end of the turn, each time a model in that enemy unit makes an attack, subtract 1 from the Hit roll.",
+      "effect": "Each time an enemy unit declares a charge that targets one or more Genestealer Cults units from your army, that enemy unit must take a Leadership test. If failed, until the end of the turn, each time a model in that enemy unit makes an attack, subtract 1 from the Hit roll.",
+      "details": [],
+      "source": "Library - Tyranids.cat"
+    },
+    "war horde": {
+      "name": "Get Stuck In",
+      "timing": "",
+      "effect": "Melee weapons equipped by Orks models from your army have the [SUSTAINED HITS 1] ability.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "da big hunt": {
+      "name": "Da Hunt Is On",
+      "timing": "At the start of your Command phase, select one Monster, Vehicle, or Character unit from your opponent's army. Until the start of your next Command phase, that enemy unit is your Prey:",
+      "effect": "Each time a Beast Snagga unit from your army declares a charge that includes your Prey as one of the targets, you can re-roll the Charge roll.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Each time a Beast Snagga model from your army makes an attack that targets your Prey, improve the Armour Penetration characteristic of that attack by 1."
+        }
+      ],
+      "source": "Orks.cat"
+    },
+    "dread mob": {
+      "name": "Try Dat Button!",
+      "timing": "Each time a Mek, Orks Walker or Grots Vehicle unit from your army is selected to shoot or fight, roll one D6. Until the end of the phase, weapons equipped by models in that unit have the corresponding ability shown in the table below.",
+      "effect": "Alternatively, when such a unit is selected to shoot or fight, you can select one of the abilities above instead of rolling the D6. If you do, until the end of the phase, weapons equipped by models in that unit have the [HAZARDOUS]* ability as well.",
+      "details": [
+        {
+          "label": "If A Weapon Equipped By A Model You Army Has The",
+          "text": "If a weapon equipped by a model you army has the [HAZARDOUS] ability from multiple sources, each time you take a Hazardous test for that weapon, it is failed on a roll of a 1 or a 2."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "Gretchin units from your army gain the Battleline keyword."
+        }
+      ],
+      "source": "Orks.cat"
+    },
+    "green tide": {
+      "name": "Mob Mentality",
+      "timing": "Each time an attack targets a Boyz unit from your army, models in that unit have a 6+ invulnerable save against that attack. Each time an attack targets a Boyz unit from your army that contains 10 or more models, models in that unit have a 5+ invulnerable save against that attack.",
+      "effect": "Each time an attack targets a Boyz unit from your army, models in that unit have a 6+ invulnerable save against that attack. Each time an attack targets a Boyz unit from your army that contains 10 or more models, models in that unit have a 5+ invulnerable save against that attack.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "bully boyz": {
+      "name": "Da Boss Is Watchin'",
+      "timing": "At the start of your Command phase, in a turn in which you have not called a Waaagh!, if you have one or more Warboss models on the battlefield (or embarked within a Transport that is on the battlefield), you can call a Waaagh! for a second time this battle. When doing so, that second Waaagh! only counts as having been called for Warboss, Nobz and Meganobz units from your army.",
+      "effect": "At the start of your Command phase, in a turn in which you have not called a Waaagh!, if you have one or more Warboss models on the battlefield (or embarked within a Transport that is on the battlefield), you can call a Waaagh! for a second time this battle. When doing so, that second Waaagh! only counts as having been called for Warboss, Nobz and Meganobz units from your army.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "kult of speed": {
+      "name": "Adrenaline Junkies",
+      "timing": "",
+      "effect": "Speed Freeks units from your army are eligible to shoot and declare a charge in a turn in which they Advanced or Fell Back.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "taktikal brigade": {
+      "name": "Lissen 'Ere",
+      "timing": "Once per battle round, in your Command phase or after being set up on the battlefield in your Movement phase, each Boss Snikrot, Mek and Warboss model in your army can issue Taktiks abilities.",
+      "effect": "To do so, select one of the Taktiks abilities below and select one friendly Orks unit within 6\" of that model to issue them to. That model must take a Leadership test: if failed, the selected unit suffers 1 mortal wound. Until the start of your next Command phase, the selected unit is affected by the selected Taktik. A unit cannot have Taktiks issued to it in this way more than once per battle round.",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "Taktiks abilities cannot be issued to Battle shocked units, and if a unit affected by Taktiks becomes Battle shocked, all Taktiks cease to affect that unit while it is Battle shocked."
+        },
+        {
+          "label": "Get Stuck In",
+          "text": "Get Stuck In: You can re roll Charge rolls made for this unit."
+        },
+        {
+          "label": "Get On Wiv It",
+          "text": "Get On Wiv It: Add 1 to the Strength characteristic of melee weapons equipped by models in this unit."
+        },
+        {
+          "label": "Sneaky Stalkin'",
+          "text": "Sneaky Stalkin': Infantry and Mounted models (excluding Meganobz) in this unit have the Stealth ability and each time a ranged attack targets this unit, those models have the Benefit of Cover against that attack."
+        },
+        {
+          "label": "Shoota Drills",
+          "text": "Shoota Drills: Each time an Infantry or Mounted model in this unit makes a ranged attack, add 1 to the Hit roll."
+        }
+      ],
+      "source": "Orks.cat"
+    },
+    "more dakka": {
+      "name": "Dakka! Dakka! Dakka!",
+      "timing": "While the Waaagh! is active for your army, during your Shooting phase, ranged weapons equipped by Orks Infantry and Orks Walker models from your army have the [SUSTAINED HITS 1] ability.",
+      "effect": "Ranged weapons equipped by Orks Infantry and Orks Walker models from your army have the [ASSAULT] ability.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "freebooter krew": {
+      "name": "Here Be Loot",
+      "timing": "At the start of your Command phase, select one objective marker. Until the start of your next Command phase, that objective marker is your loot objective.",
+      "effect": "Each time a model in an Orks Infantry, Orks Mounted or Orks Walker unit from your army makes an attack, that attack has the [SUSTAINED HITS 1] ability if either or both of the following are true:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "That model's unit is within range of your loot objective."
+        },
+        {
+          "label": "Detalle 2",
+          "text": "That attack targets a unit within range of your loot objective."
+        }
+      ],
+      "source": "Orks.cat"
+    },
+    "ramship raiders": {
+      "name": "Forming Boarding Squads",
+      "timing": "When splitting a Kommandos unit, select on of the resulting Boarding Squads to gain the Distraction Grot token (if equipped with one). The Boarding Squad without the Distraction Grot token loses the Distraction Grot ability.",
+      "effect": "- Do not split Gretchin units into separate units in the Form Boarding Squads step.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "kaptin killers": {
+      "name": "Comin' Through",
+      "timing": "In your Movement phase, Desperate Escape tests taken for Orks models from your army are automatically passed and each time an Orks unit from your army makes a Normal, Advance or Fall Back move, it can move through other models as if they were not there, provided those other models have a lower Toughness characteristic than it.",
+      "effect": "In your Movement phase, Desperate Escape tests taken for Orks models from your army are automatically passed and each time an Orks unit from your army makes a Normal, Advance or Fall Back move, it can move through other models as if they were not there, provided those other models have a lower Toughness characteristic than it.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "speedwaaagh": {
+      "name": "Turbo Boostas",
+      "timing": "Each time a Speed Freeks or Trukk unit (excluding Aircraft) from your army Advances, it can use its turbo. If it does, do not make an Advance roll for it; instead, until the end of the phase, models in that unit have a Move characteristic of 24\" but can only move in one straight line, and until the end of the turn, ranged weapons equipped by those models have the [ASSAULT] ability and that unit cannot declare a charge.",
+      "effect": "Designer's Note: *When a unit uses its turbo, the models in that unit cannot pivot, and they cannot make a move of two or more straight lines (e.g. to navigate around obstacles). That unit also cannot declare a charge, even if another rule would let it declare a charge in a turn in which it Advanced.*",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "blitz brigade": {
+      "name": "Eager For The Fight",
+      "timing": "Each time an Orks unit from your army disembarks from a Transport, until the end of the turn, you can re-roll Advance and Charge rolls made for that Orks unit.",
+      "effect": "Each time an Orks unit from your army disembarks from a Transport, until the end of the turn, you can re-roll Advance and Charge rolls made for that Orks unit.",
+      "details": [],
+      "source": "Orks.cat"
+    },
+    "kauyon": {
+      "name": "Patient Hunter",
+      "timing": "During the third, fourth, and fifth battle rounds, ranged weapons equipped by T'au Empire models from your army have the [SUSTAINED HITS 1] ability. During the third, fourth and fifth battle rounds, while a unit is a Guided unit (see For the Greater Good), each time a ranged attack is made by a model in that unit that targets a Spotted unit, you can ignore any or all modifiers to that attack's Ballistic skill characteristics and/or all modifiers to the Hit roll.",
+      "effect": "During the third, fourth, and fifth battle rounds, ranged weapons equipped by T'au Empire models from your army have the [SUSTAINED HITS 1] ability. During the third, fourth and fifth battle rounds, while a unit is a Guided unit (see For the Greater Good), each time a ranged attack is made by a model in that unit that targets a Spotted unit, you can ignore any or all modifiers to that attack's Ballistic skill characteristics and/or all modifiers to the Hit roll.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "montka": {
+      "name": "Killing Blow",
+      "timing": "During the first, second and third battle rounds, ranged weapons equipped by T'au Empire models from your army have the [ASSAULT] ability. During the first, second and third battle rounds, while a unit is a Guided unit (see For the Greater Good), its ranged weapons have the [LETHAL HITS] ability.",
+      "effect": "During the first, second and third battle rounds, ranged weapons equipped by T'au Empire models from your army have the [ASSAULT] ability. During the first, second and third battle rounds, while a unit is a Guided unit (see For the Greater Good), its ranged weapons have the [LETHAL HITS] ability.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "retaliation cadre": {
+      "name": "Bonded Heroes",
+      "timing": "Each time a T'au Empire Battlesuit model from your army makes a ranged attack that targets a unit within 12\", improve the Strength characteristic of that attack by 1. If that attack targets a unit within 9\", improve the Armour Penetration characteristic of that attack by 1 as well.",
+      "effect": "Each time a T'au Empire Battlesuit model from your army makes a ranged attack that targets a unit within 12\", improve the Strength characteristic of that attack by 1. If that attack targets a unit within 9\", improve the Armour Penetration characteristic of that attack by 1 as well.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "kroot hunting pack": {
+      "name": "Hunter's Instincts",
+      "timing": "Each time a Kroot model from your army makes an attack, add 1 to the Hit roll if the target of that attack is below its Starting Strength, and add 1 to the Wound roll as well if the target of that attack is Below Half-strength.",
+      "effect": "Each time a Kroot model from your army makes an attack, add 1 to the Hit roll if the target of that attack is below its Starting Strength, and add 1 to the Wound roll as well if the target of that attack is Below Half-strength.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "auxiliary cadre": {
+      "name": "Integrated Command Structure",
+      "timing": "Targeting Triangulation (Aura): While an enemy unit is within 9\" of and visible to this unit, each time a ranged attack made by a friendly T'au Empire model (excluding Kroot, Vespid Stingwings and TITANIC models) targets that enemy unit, improve the Armour Penetration characteristic of that attack by 1.",
+      "effect": "Kroot and Vespid Stingwings units from your army have the following ability:",
+      "details": [
+        {
+          "label": "Detalle 1",
+          "text": "T'au Empire units (excluding Kroot and Vespid Stingwings units) from your army have the following ability:"
+        },
+        {
+          "label": "Localised Stealth Projectors (Aura)",
+          "text": "Localised Stealth Projectors (Aura): While a friendly Kroot or Vespid Stingwings unit is wholly within 6\" of and visible to this unit, that Kroot or Vespid Stingwings unit can only be selected as the target of a ranged attack if the attacking model is within 18\"."
+        }
+      ],
+      "source": "T'au Empire.cat"
+    },
+    "experimental prototype cadre": {
+      "name": "Superior Craftmanship",
+      "timing": "",
+      "effect": "Add 6\" to the Range characteristic of ranged weapons equipped by T'au Empire models from your army.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "kroot raiding party": {
+      "name": "Guerrilla Ambushers",
+      "timing": "Each time an enemy unit is selected to fire Overwatch, roll one D6: on a 4+, until the end of the turn, that unit cannot make Overwatch attacks that target Kroot units from your army.",
+      "effect": "Each time an enemy unit is selected to fire Overwatch, roll one D6: on a 4+, until the end of the turn, that unit cannot make Overwatch attacks that target Kroot units from your army.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "starfire cadre": {
+      "name": "Markerlight Precision",
+      "timing": "Each time a T'au Empire unit from your army (excluding Kroot units) is selected to shoot, ranged weapons equipped by models in your unit have their Ballistic Skill characteristic improved by 1 and have the [SUSTAINED HITS 1] ability while targeting an enemy unit that is visible to one or more friendly Markerlight units that are not within Engagement Range of one or more enemy models.",
+      "effect": "Each time a T'au Empire unit from your army (excluding Kroot units) is selected to shoot, ranged weapons equipped by models in your unit have their Ballistic Skill characteristic improved by 1 and have the [SUSTAINED HITS 1] ability while targeting an enemy unit that is visible to one or more friendly Markerlight units that are not within Engagement Range of one or more enemy models.",
+      "details": [],
+      "source": "T'au Empire.cat"
+    },
+    "aspect host": {
+      "name": "Aspect Host rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "battlehost": {
+      "name": "Battlehost rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "wraith host": {
+      "name": "Wraith Host rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "annihilation legion": {
+      "name": "Annihilation Legion rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "awakened dynasty": {
+      "name": "Awakened Dynasty rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "canoptek court": {
+      "name": "Canoptek Court rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "cryptek conclave": {
+      "name": "Cryptek Conclave rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "cursed legion": {
+      "name": "Cursed Legion rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "hypercrypt legion": {
+      "name": "Hypercrypt Legion rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "obeisance phalanx": {
+      "name": "Obeisance Phalanx rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "pantheon of woe": {
+      "name": "Pantheon of Woe rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "starshatter arsenal": {
+      "name": "Starshatter Arsenal rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "army of faith": {
+      "name": "Army of Faith rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "bringers of flame": {
+      "name": "Bringers of Flame rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "champions of faith": {
+      "name": "Champions of Faith rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "hallowed martyrs": {
+      "name": "Hallowed Martyrs rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "penitent host": {
+      "name": "Penitent Host rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "combined regiment": {
+      "name": "Combined Regiment rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "data psalm conclave": {
+      "name": "Data-psalm Conclave rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "rad zone corps": {
+      "name": "Rad-Zone Corps rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Disparo",
+          "text": "Favorece ataques a distancia, fuego concentrado o perfiles anti-tanque."
+        }
+      ],
+      "source": "fallback"
+    },
+    "skitarii hunter cohort": {
+      "name": "Skitarii Hunter Cohort rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "brotherhood strike": {
+      "name": "Brotherhood Strike rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "teleport strike force": {
+      "name": "Teleport Strike Force rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "realspace raiders": {
+      "name": "Realspace Raiders rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "skysplinter assault": {
+      "name": "Skysplinter Assault rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "vessels of wrath": {
+      "name": "Vessels of Wrath rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "angelic host": {
+      "name": "Angelic Host rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "lost brethren": {
+      "name": "Lost Brethren rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "sons of sanguinius": {
+      "name": "Sons of Sanguinius rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "champions of russ": {
+      "name": "Champions of Russ rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "righteous crusaders": {
+      "name": "Righteous Crusaders rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Melee",
+          "text": "Favorece ataques de combate, cargas o unidades que pelean por objetivos."
+        },
+        {
+          "label": "Resistencia",
+          "text": "Favorece unidades que sostienen mesa, reducen dano o aguantan objetivos."
+        }
+      ],
+      "source": "fallback"
+    },
+    "templar vow host": {
+      "name": "Templar Vow Host rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Presion",
+          "text": "Favorece unidades que avanzan, cargan, reposicionan o fuerzan intercambios tempranos."
+        },
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    },
+    "daemonic incursion": {
+      "name": "Daemonic Incursion rule",
+      "timing": "Regla de detachment no extraida literalmente de BSData.",
+      "effect": "Referencia mecanica generada desde el perfil del detachment.",
+      "details": [
+        {
+          "label": "Mision",
+          "text": "Favorece control de objetivos, acciones, OC o scoring secundario."
+        }
+      ],
+      "source": "fallback"
+    }
+  }
+}

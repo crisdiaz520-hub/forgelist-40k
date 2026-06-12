@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ForgeList 40K</title>
+    <meta name="theme-color" content="#14201c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ForgeList" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <button id="installApp" class="install-app hidden" type="button">Instalar app</button>
+    <button id="openBetaFeedback" class="beta-feedback-button hidden" type="button">Feedback beta</button>
+    <main id="listLibrary" class="library-shell">
+      <section class="library-hero">
+        <div class="brand">
+          <span class="brand-mark">FL</span>
+          <div>
+            <h1>ForgeList 40K</h1>
+            <p>Biblioteca de listas y mesas de analisis</p>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">Listas guardadas</p>
+          <h2>Elige una lista para seguirla editando</h2>
+          <p class="summary">Cada guardado conserva tu lista, la lista rival, facciones, detachments, configuracion de partida y analisis.</p>
+        </div>
+      </section>
+
+      <section class="panel library-create">
+        <label>
+          Nueva lista
+          <input id="newListName" type="text" placeholder="Blood Angels 2000, Necrons C'tan, torneo local..." />
+        </label>
+        <button id="createList" type="button">Crear lista</button>
+      </section>
+
+      <section class="panel user-profile-panel">
+        <div class="section-title">
+          <div>
+            <h3>Perfil de usuario</h3>
+            <p class="mini">Guarda preferencias para autopick, analisis y nuevas listas.</p>
+          </div>
+          <button id="deleteUserProfile" class="ghost danger" type="button">Borrar perfil</button>
+        </div>
+        <div class="user-profile-grid">
+          <label>
+            Perfil activo
+            <select id="userProfileSelect"></select>
+          </label>
+          <label>
+            Nombre
+            <input id="userProfileName" type="text" placeholder="Tu nombre o nickname" />
+          </label>
+          <label>
+            Faccion favorita
+            <select id="userProfileFaction"></select>
+          </label>
+          <label>
+            Arquetipo preferido
+            <select id="userProfilePlaystyle">
+              <option value="meleeRush">Melee Rush / Pressure</option>
+              <option value="trading">Trading</option>
+              <option value="gunline">Anchor / Castle / Gunline</option>
+              <option value="skew">Skew</option>
+              <option value="horde">Horde / Board Control</option>
+              <option value="alphaStrike">Alpha Strike</option>
+              <option value="midrange">Midrange</option>
+              <option value="attrition">Attrition</option>
+              <option value="mobilityTempo">Mobility / Tempo</option>
+              <option value="combo">Combo / Synergy Engine</option>
+            </select>
+          </label>
+          <label>
+            Experiencia
+            <select id="userProfileExperience">
+              <option value="new">Nueva</option>
+              <option value="mid">Intermedia</option>
+              <option value="expert">Experta</option>
+            </select>
+          </label>
+          <label>
+            Riesgo preferido
+            <input id="userProfileRisk" type="range" min="1" max="10" value="5" />
+          </label>
+          <label>
+            Objetivo principal
+            <select id="userProfileGoal">
+              <option value="competitive">Competitivo</option>
+              <option value="casual">Casual</option>
+              <option value="narrative">Narrativo</option>
+            </select>
+          </label>
+          <label>
+            Meta local habitual
+            <select id="userProfileMeta">
+              <option value="balanced">Balanceado</option>
+              <option value="horde">Mucho horde</option>
+              <option value="elite">Elite resistente</option>
+              <option value="vehicle">Vehiculos/monstruos</option>
+              <option value="indirect">Indirecto y gunlines</option>
+            </select>
+          </label>
+        </div>
+        <div class="export-actions">
+          <button id="saveUserProfile" type="button">Guardar perfil</button>
+          <button id="createUserProfile" class="ghost" type="button">Nuevo perfil</button>
+          <button id="startGuidedTour" class="ghost" type="button">Prueba guiada</button>
+          <label class="beta-toggle">
+            <input id="betaTesterMode" type="checkbox" />
+            Modo beta tester
+          </label>
+        </div>
+        <p id="userProfileStatus" class="import-status"></p>
+      </section>
+
+      <section class="library-content">
+        <div class="section-title">
+          <div>
+            <h3>Mis listas</h3>
+            <label class="edition-picker">
+              Edicion
+              <select id="libraryEdition">
+                <option value="10e">10ma edicion</option>
+                <option value="11e">11va edicion</option>
+              </select>
+            </label>
+          </div>
+          <button id="refreshLists" class="ghost" type="button">Actualizar</button>
+        </div>
+        <div id="savedLists" class="saved-list-grid"></div>
+      </section>
+    </main>
+
+    <main id="editorShell" class="app-shell hidden">
+      <aside class="sidebar" aria-label="Configuracion de lista">
+        <div class="brand">
+          <span class="brand-mark">FL</span>
+          <div>
+            <h1>ForgeList 40K</h1>
+            <p>Asistente tactico para listas de Warhammer 40,000</p>
+          </div>
+        </div>
+
+        <section class="panel compact">
+          <h2>Objetivo</h2>
+          <label class="edition-picker">
+            Edicion
+            <select id="rulesEdition">
+              <option value="10e">10ma edicion</option>
+              <option value="11e">11va edicion</option>
+            </select>
+          </label>
+          <p id="editionSummary" class="mini edition-summary"></p>
+          <div class="segmented" role="group" aria-label="Perfil de juego">
+            <button class="active" data-profile="competitive">Competitivo</button>
+            <button data-profile="casual">Casual</button>
+            <button data-profile="narrative">Narrativo</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Estilo</h2>
+          <label>
+            Arquetipo
+            <select id="playstyle">
+              <option value="meleeRush">Melee Rush / Pressure</option>
+              <option value="trading">Trading</option>
+              <option value="gunline">Anchor / Castle / Gunline</option>
+              <option value="skew">Skew</option>
+              <option value="horde">Horde / Board Control</option>
+              <option value="alphaStrike">Alpha Strike</option>
+              <option value="midrange" selected>Midrange</option>
+              <option value="attrition">Attrition</option>
+              <option value="mobilityTempo">Mobility / Tempo</option>
+              <option value="combo">Combo / Synergy Engine</option>
+            </select>
+          </label>
+          <label>
+            Tolerancia al riesgo
+            <input id="risk" type="range" min="1" max="10" value="5" />
+          </label>
+          <label>
+            Experiencia del jugador
+            <select id="experience">
+              <option value="new">Nueva</option>
+              <option value="mid" selected>Intermedia</option>
+              <option value="expert">Experta</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2>Contexto</h2>
+          <label>
+            Tamano de partida
+            <select id="gameSize">
+              <option value="500">500 pts</option>
+              <option value="1000">1000 pts</option>
+              <option value="1500">1500 pts</option>
+              <option value="2000" selected>2000 pts</option>
+              <option value="2500">2500 pts</option>
+              <option value="3000">3000 pts</option>
+            </select>
+          </label>
+          <label>
+            Faccion
+            <select id="faction"></select>
+          </label>
+          <div id="factionRules" class="rules-card"></div>
+          <label>
+            Detachment
+            <select id="detachment"></select>
+          </label>
+          <div id="detachmentRules" class="rules-card"></div>
+          <div id="detachmentDpPanel" class="detachment-dp-panel"></div>
+          <button id="openStratagems" class="wide ghost stratagem-open" type="button">Ver estratagemas</button>
+          <label>
+            Meta local
+            <select id="meta">
+              <option value="balanced">Balanceado</option>
+              <option value="horde">Mucho horde</option>
+              <option value="elite">Elite resistente</option>
+              <option value="vehicle">Vehiculos/monstruos</option>
+              <option value="indirect">Indirecto y gunlines</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2>Lista enemiga</h2>
+          <label>
+            Faccion rival
+            <select id="enemyFaction"></select>
+          </label>
+          <label>
+            Detachment rival
+            <select id="enemyDetachment"></select>
+          </label>
+          <div id="enemyDetachmentRules" class="rules-card"></div>
+          <div id="enemyDetachmentDpPanel" class="detachment-dp-panel"></div>
+          <button id="openEnemyStratagems" class="wide ghost stratagem-open" type="button">Ver estratagemas rivales</button>
+          <label>
+            Estilo rival
+            <select id="enemyStyle">
+              <option value="meleeRush">Melee Rush / Pressure</option>
+              <option value="trading">Trading</option>
+              <option value="gunline">Anchor / Castle / Gunline</option>
+              <option value="skew">Skew</option>
+              <option value="horde">Horde / Board Control</option>
+              <option value="alphaStrike">Alpha Strike</option>
+              <option value="midrange" selected>Midrange</option>
+              <option value="attrition">Attrition</option>
+              <option value="mobilityTempo">Mobility / Tempo</option>
+              <option value="combo">Combo / Synergy Engine</option>
+            </select>
+          </label>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Constructor inteligente</p>
+            <h2 id="editorTitle">Disena una lista por plan de juego, no solo por puntos</h2>
+          </div>
+          <div class="topbar-actions">
+            <label class="list-name-field">
+              Nombre de la lista
+              <input id="activeListName" type="text" />
+            </label>
+            <div class="editor-buttons">
+              <button id="saveList" type="button">Guardar</button>
+              <button id="applyUserProfile" class="ghost" type="button">Aplicar perfil</button>
+              <button id="backToLibrary" class="ghost" type="button">Listas</button>
+            </div>
+            <p id="saveStatus" class="save-status"></p>
+            <div class="points">
+              <span id="pointsUsed">0</span>
+              <small>/ <span id="gameSizeLabel">2000</span> pts</small>
+            </div>
+          </div>
+        </header>
+
+        <nav class="workspace-tabs" aria-label="Secciones principales">
+          <button class="active" type="button" data-workspace-tab="player">Mi army</button>
+          <button type="button" data-workspace-tab="enemy">Army rival</button>
+          <button type="button" data-workspace-tab="analysis">Analisis</button>
+          <button type="button" data-workspace-tab="memory">Memoria</button>
+          <button type="button" data-workspace-tab="data">Datos</button>
+        </nav>
+
+        <section id="stratagemSection" class="panel stratagem-section hidden" aria-live="polite">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Referencia tactica</p>
+              <h3 id="stratagemTitle">Estratagemas</h3>
+              <p id="stratagemSubtitle" class="mini"></p>
+            </div>
+            <button id="closeStratagems" class="ghost" type="button">Cerrar</button>
+          </div>
+          <div id="stratagemList" class="stratagem-list"></div>
+        </section>
+
+        <section id="unitDetailPanel" class="panel unit-detail-panel hidden" aria-live="polite">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Datasheet y configuracion</p>
+              <h3 id="unitDetailTitle">Unidad</h3>
+              <p id="unitDetailSubtitle" class="mini"></p>
+            </div>
+            <button id="closeUnitDetail" class="ghost" type="button">Cerrar</button>
+          </div>
+          <div id="unitDetailContent" class="unit-detail-content"></div>
+        </section>
+
+        <section class="tab-panels">
+          <div class="tab-panel active" data-tab-panel="player">
+            <div class="grid two-column">
+              <article class="panel list-builder">
+                <div class="section-title">
+                  <h3>Unidades recomendadas</h3>
+                  <button id="autoPick">Completar lista</button>
+                </div>
+                <label class="search-label">
+                  Buscar unidad
+                  <input id="unitSearch" type="search" placeholder="Captain, Intercessor, Land Raider..." />
+                </label>
+                <div id="unitCatalog" class="unit-list"></div>
+              </article>
+
+              <article class="panel roster-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Tu lista</h3>
+                    <p class="mini">Importa texto o agrega unidades manualmente.</p>
+                  </div>
+                  <button id="clearList" class="ghost">Limpiar</button>
+                </div>
+                <div id="roster" class="roster empty"></div>
+                <div id="rosterValidation" class="validation-list"></div>
+                <textarea id="playerPaste" placeholder="Pega aqui tu lista. Solo se importan unidades reconocidas en la base de datos; metadata y lineas desconocidas no suman puntos."></textarea>
+                <button id="parsePlayerList" class="wide" type="button">Importar mi lista</button>
+                <p id="playerImportStatus" class="import-status"></p>
+                <div class="export-tools">
+                  <label>
+                    Exportar formato
+                    <select id="playerExportFormat">
+                      <option value="wtcCompact">WTC-Compact</option>
+                      <option value="wtc">WTC</option>
+                      <option value="short">SHORT</option>
+                      <option value="gw">GW</option>
+                      <option value="nr">NR</option>
+                      <option value="twoHg">2HG</option>
+                      <option value="simple">Simple</option>
+                      <option value="yellowscribe">YellowScribe</option>
+                    </select>
+                  </label>
+                  <div class="export-actions">
+                    <button id="copyPlayerExport" class="ghost" type="button">Copiar</button>
+                    <button id="downloadPlayerExport" type="button">Descargar .txt</button>
+                  </div>
+                  <button id="printPlayerCards" class="wide ghost" type="button">Cartas PDF / imprimir</button>
+                  <p id="playerExportStatus" class="import-status"></p>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-tab-panel="enemy">
+            <div class="grid two-column">
+              <article class="panel enemy-builder">
+                <div class="section-title">
+                  <h3>Unidades enemigas</h3>
+                  <button id="enemyAutoPick" class="ghost">Completar rival</button>
+                </div>
+                <label class="search-label">
+                  Buscar unidad rival
+                  <input id="enemyUnitSearch" type="search" placeholder="Hive Tyrant, Immortals, War Dog..." />
+                </label>
+                <div id="enemyCatalog" class="unit-list"></div>
+              </article>
+
+              <article class="panel enemy-roster-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Lista enemiga</h3>
+                    <p class="mini"><span id="enemyPointsUsed">0</span> / <span id="enemyGameSizeLabel">2000</span> pts</p>
+                  </div>
+                  <button id="clearEnemyList" class="ghost">Limpiar</button>
+                </div>
+                <div id="enemyRoster" class="roster empty"></div>
+                <div id="enemyRosterValidation" class="validation-list"></div>
+                <textarea id="enemyPaste" placeholder="Pega aqui la lista enemiga. Solo se importan unidades reconocidas en la base de datos; metadata y lineas desconocidas no suman puntos."></textarea>
+                <button id="parseEnemyList" class="wide" type="button">Importar texto</button>
+                <p id="enemyImportStatus" class="import-status"></p>
+                <div class="export-tools">
+                  <label>
+                    Exportar formato rival
+                    <select id="enemyExportFormat">
+                      <option value="wtcCompact">WTC-Compact</option>
+                      <option value="wtc">WTC</option>
+                      <option value="short">SHORT</option>
+                      <option value="gw">GW</option>
+                      <option value="nr">NR</option>
+                      <option value="twoHg">2HG</option>
+                      <option value="simple">Simple</option>
+                      <option value="yellowscribe">YellowScribe</option>
+                    </select>
+                  </label>
+                  <div class="export-actions">
+                    <button id="copyEnemyExport" class="ghost" type="button">Copiar</button>
+                    <button id="downloadEnemyExport" type="button">Descargar .txt</button>
+                  </div>
+                  <button id="printEnemyCards" class="wide ghost" type="button">Cartas PDF / imprimir</button>
+                  <p id="enemyExportStatus" class="import-status"></p>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-tab-panel="analysis">
+            <div class="grid analysis-grid">
+              <article class="panel saved-matchup-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Matchup de analisis</h3>
+                    <p class="mini">Carga una lista guardada o pega la lista rival puntual sin guardarla.</p>
+                  </div>
+                  <button id="loadSavedMatchup" type="button">Cargar matchup</button>
+                </div>
+                <div class="saved-matchup-form">
+                  <label>
+                    Mi lista guardada
+                    <select id="matchupPlayerList"></select>
+                  </label>
+                  <label>
+                    Lista rival guardada
+                    <select id="matchupEnemyList"></select>
+                  </label>
+                </div>
+                <details class="analysis-inline-import">
+                  <summary>Importar lista rival para este analisis</summary>
+                  <textarea id="analysisEnemyPaste" placeholder="Pega aqui la lista rival. Se cargara en el analisis y simulador, sin guardarla en biblioteca."></textarea>
+                  <div class="export-actions">
+                    <button id="parseAnalysisEnemyList" class="ghost" type="button">Usar lista rival</button>
+                  </div>
+                </details>
+                <p id="savedMatchupStatus" class="import-status"></p>
+              </article>
+
+              <article class="panel score-panel">
+                <h3>Calificacion</h3>
+                <div class="score-grid">
+                  <div>
+                    <span id="competitiveScore">0.0</span>
+                    <small>Competitivo</small>
+                  </div>
+                  <div>
+                    <span id="casualScore">0.0</span>
+                    <small>Casual</small>
+                  </div>
+                  <div>
+                    <span id="narrativeScore">0.0</span>
+                    <small>Narrativo</small>
+                  </div>
+                </div>
+                <p id="scoreSummary" class="summary"></p>
+                <div id="scoreBreakdown" class="score-breakdown"></div>
+              </article>
+
+              <article class="panel recommendations">
+                <h3>Consejos</h3>
+                <ul id="tips"></ul>
+              </article>
+
+              <article class="panel change-recommendations">
+                <h3>Cambios recomendados</h3>
+                <div id="changeRecommendations" class="change-recommendation-list"></div>
+              </article>
+
+              <article class="panel matchup-panel">
+                <h3>Comparacion de listas</h3>
+                <div id="profileCompare" class="metric-list"></div>
+              </article>
+
+              <article class="panel simulator">
+                <div class="section-title">
+                  <h3>Simulador de matchup</h3>
+                  <button id="simulate">Simular</button>
+                </div>
+                <div class="sim-form">
+                  <label>
+                    Chapter Approved
+                    <select id="missionPreset"></select>
+                  </label>
+                  <label class="locked-mission-field">
+                    Mision
+                    <select id="mission">
+                      <option value="takeHold">Take and Hold</option>
+                      <option value="supplyDrop">Supply Drop</option>
+                      <option value="purgeFoe">Purge the Foe</option>
+                      <option value="scorchedEarth">Scorched Earth</option>
+                      <option value="hiddenSupplies">Hidden Supplies</option>
+                      <option value="linchpin">Linchpin</option>
+                      <option value="terraform">Terraform</option>
+                    </select>
+                  </label>
+                  <label class="locked-mission-field">
+                    Deployment
+                    <select id="deployment">
+                      <option value="dawn">Dawn of War</option>
+                      <option value="search">Search and Destroy</option>
+                      <option value="crucible">Crucible of Battle</option>
+                      <option value="tippingPoint">Tipping Point</option>
+                      <option value="hammer">Hammer and Anvil</option>
+                      <option value="sweeping">Sweeping Engagement</option>
+                    </select>
+                  </label>
+                  <label>
+                    Layout
+                    <select id="layout">
+                      <option value="gw">GW balanced</option>
+                      <option value="dense">Denso</option>
+                      <option value="open">Abierto</option>
+                      <option value="ca1">CA Layout 1</option>
+                      <option value="ca2">CA Layout 2</option>
+                      <option value="ca3">CA Layout 3</option>
+                      <option value="ca4">CA Layout 4</option>
+                      <option value="ca5">CA Layout 5</option>
+                      <option value="ca6">CA Layout 6</option>
+                      <option value="ca7">CA Layout 7</option>
+                      <option value="ca8">CA Layout 8</option>
+                      <option value="wtc">WTC balanced</option>
+                      <option value="wtcDense">WTC denso</option>
+                      <option value="wtcOpen">WTC abierto</option>
+                      <option value="ftc">FTC balanced</option>
+                      <option value="ftcDense">FTC denso</option>
+                      <option value="ftcOpen">FTC abierto</option>
+                      <option value="flg">FLG balanced</option>
+                      <option value="flgDense">FLG denso</option>
+                      <option value="flgOpen">FLG abierto</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Mi Force Disposition
+                    <select id="forceDisposition">
+                      <option value="takeHold">Take & Hold</option>
+                      <option value="disruption">Disruption</option>
+                      <option value="purgeFoe">Purge The Foe</option>
+                      <option value="priorityTargets">Priority Targets</option>
+                      <option value="reconnaissance">Reconnaissance</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Force Disposition rival
+                    <select id="enemyForceDisposition">
+                      <option value="takeHold">Take & Hold</option>
+                      <option value="disruption">Disruption</option>
+                      <option value="purgeFoe">Purge The Foe</option>
+                      <option value="priorityTargets">Priority Targets</option>
+                      <option value="reconnaissance">Reconnaissance</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Terreno 11va
+                    <select id="terrainProfile">
+                      <option value="balancedAreas">Areas balanceadas</option>
+                      <option value="objectiveStrongholds">Objetivos fortificados</option>
+                      <option value="denseHidden">Denso / Hidden frecuente</option>
+                      <option value="openLanes">Lineas abiertas</option>
+                      <option value="mixedVertical">Mixto vertical</option>
+                    </select>
+                  </label>
+                </div>
+                <p id="missionPresetSummary" class="mission-preset-summary"></p>
+                <div id="missionRecommendations" class="mission-recommendations"></div>
+                <div class="win-card">
+                  <div class="win-ring" style="--win: 50%">
+                    <span id="winRate">50%</span>
+                  </div>
+                  <p id="simSummary">Agrega unidades y corre la simulacion.</p>
+                </div>
+              </article>
+
+            </div>
+          </div>
+
+          <div class="tab-panel" data-tab-panel="memory">
+            <div class="grid memory-grid">
+              <article class="panel match-history-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Memoria del jugador</h3>
+                    <p class="mini">Importa reportes, guarda listas usadas y alimenta simulaciones y autopick.</p>
+                  </div>
+                  <button id="clearMatchHistory" class="ghost" type="button">Limpiar historial</button>
+                </div>
+                <textarea id="matchReportPaste" placeholder="Aqui aparecera el texto detectado por OCR. No necesitas escribirlo con formato."></textarea>
+                <div id="matchImageDrop" class="image-drop-zone" tabindex="0">
+                  <strong>Pegar imagen del reporte</strong>
+                  <span>Ctrl+V aqui, arrastra una captura, o sube un archivo. La app hara OCR y preparara un borrador.</span>
+                  <input id="matchImageFile" type="file" accept="image/*" />
+                </div>
+                <div id="matchImagePreview" class="match-image-preview hidden"></div>
+                <div id="matchDraftSummary" class="match-draft-summary hidden"></div>
+                <div class="match-list-pickers">
+                  <label>
+                    Mi lista usada
+                    <select id="matchPlayerListSelect"></select>
+                  </label>
+                  <label>
+                    Lista rival usada
+                    <select id="matchEnemyListSelect"></select>
+                  </label>
+                </div>
+                <details class="match-inline-import">
+                  <summary>Importar lista rival solo para esta partida</summary>
+                  <textarea id="matchEnemyListPaste" placeholder="Pega aqui la lista rival en formato GW, New Recruit, WTC, etc. Se vinculara a esta partida sin guardarla como lista permanente."></textarea>
+                  <div class="export-actions">
+                    <button id="parseMatchEnemyList" class="ghost" type="button">Usar esta lista rival</button>
+                  </div>
+                  <p id="matchEnemyListStatus" class="import-status"></p>
+                </details>
+                <div class="export-actions">
+                  <button id="parseMatchReport" type="button">Guardar en memoria</button>
+                </div>
+                <p id="matchReportStatus" class="import-status"></p>
+              </article>
+
+              <article class="panel history-overview-panel">
+                <h3>Resumen historico</h3>
+                <div id="matchHistoryStats" class="history-stats"></div>
+                <div id="matchHistoryInsights" class="history-insights"></div>
+              </article>
+
+              <article class="panel history-games-panel">
+                <h3>Partidas guardadas</h3>
+                <div id="matchHistoryList" class="history-list"></div>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-tab-panel="data">
+            <div class="grid data-audit-grid">
+              <article class="panel data-pack-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Actualizaciones de reglas y puntos</h3>
+                    <p class="mini">Descarga data packs remotos para actualizar puntos, unidades, detachments, reglas y datasheets sin reinstalar la app.</p>
+                  </div>
+                  <button id="checkDataPackUpdate" class="ghost" type="button">Buscar update</button>
+                </div>
+                <div class="data-pack-controls">
+                  <label>
+                    Canal
+                    <select id="dataPackChannel">
+                      <option value="10e-stable">10ma estable</option>
+                      <option value="11e-beta">11va beta</option>
+                      <option value="11e-stable">11va estable</option>
+                    </select>
+                  </label>
+                  <label class="wide">
+                    Manifest remoto
+                    <input id="dataPackManifestUrl" type="text" placeholder="https://.../forgelist-data-manifest.json" />
+                  </label>
+                  <label class="data-pack-check">
+                    <input id="dataPackAutoCheck" type="checkbox" />
+                    Revisar automaticamente al abrir
+                  </label>
+                </div>
+                <div class="export-actions">
+                  <button id="reloadDataPack" type="button">Recargar datos activos</button>
+                  <button id="clearDataPack" class="ghost danger" type="button">Volver a datos incluidos</button>
+                </div>
+                <div id="dataPackSummary" class="data-pack-summary"></div>
+                <p id="dataPackStatus" class="import-status"></p>
+              </article>
+
+              <article class="panel data-audit-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Verificador de datos</h3>
+                    <p class="mini">Audita puntos, categorias, datasheets, armas, keywords y scores tacticos del dataset activo.</p>
+                  </div>
+                  <button id="refreshDataAudit" class="ghost" type="button">Revisar</button>
+                </div>
+                <div class="data-audit-controls">
+                  <label>
+                    Faccion
+                    <select id="dataAuditFaction"></select>
+                  </label>
+                  <label>
+                    Severidad
+                    <select id="dataAuditSeverity">
+                      <option value="all">Todas</option>
+                      <option value="error">Errores</option>
+                      <option value="warn">Advertencias</option>
+                      <option value="incomplete">Datos incompletos</option>
+                    </select>
+                  </label>
+                  <label>
+                    Buscar
+                    <input id="dataAuditSearch" type="search" placeholder="Unidad, faccion, categoria..." />
+                  </label>
+                </div>
+                <div id="dataAuditSummary" class="data-audit-summary"></div>
+                <div id="dataAuditList" class="data-audit-list"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <section id="guidedTourOverlay" class="guided-tour-overlay hidden" aria-live="polite">
+      <article class="guided-tour-card">
+        <p id="guidedTourStep" class="eyebrow">Guia</p>
+        <h3 id="guidedTourTitle">Prueba guiada</h3>
+        <p id="guidedTourBody"></p>
+        <div class="guided-tour-actions">
+          <button id="skipGuidedTour" class="ghost" type="button">Omitir</button>
+          <button id="nextGuidedTour" type="button">Siguiente</button>
+        </div>
+      </article>
+    </section>
+
+    <section id="betaFeedbackOverlay" class="beta-feedback-overlay hidden" aria-live="polite">
+      <article class="beta-feedback-card">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Modo beta tester</p>
+            <h3>Enviar comentario</h3>
+            <p class="mini">El reporte adjunta contexto de la app para que el problema sea reproducible.</p>
+          </div>
+          <button id="closeBetaFeedback" class="ghost" type="button">Cerrar</button>
+        </div>
+        <div class="beta-feedback-grid">
+          <label>
+            Tipo de comentario
+            <select id="betaFeedbackType">
+              <option value="bug">Error / bug</option>
+              <option value="data">Puntos, unidad o regla incorrecta</option>
+              <option value="recommendation">Recomendacion rara</option>
+              <option value="ux">Interfaz confusa</option>
+              <option value="idea">Idea o mejora</option>
+            </select>
+          </label>
+          <label>
+            Severidad
+            <select id="betaFeedbackSeverity">
+              <option value="medium">Media</option>
+              <option value="critical">Critica</option>
+              <option value="low">Baja</option>
+            </select>
+          </label>
+          <label class="wide">
+            Titulo corto
+            <input id="betaFeedbackTitle" type="text" placeholder="Ej. No reconoce Deathwing Knights correctamente" />
+          </label>
+          <label class="wide">
+            Que paso
+            <textarea id="betaFeedbackBody" placeholder="Describe que viste, que esperabas y en que parte de la app paso."></textarea>
+          </label>
+          <label class="wide">
+            Como repetirlo
+            <textarea id="betaFeedbackSteps" placeholder="Ej. Abrir Analisis, importar esta lista, seleccionar mision X, pulsar simular..."></textarea>
+          </label>
+          <label class="wide">
+            Que esperabas que pasara
+            <textarea id="betaFeedbackExpected" placeholder="Ej. Esperaba que reconociera los enhancements y marcara los puntos correctos."></textarea>
+          </label>
+          <label>
+            Contacto opcional
+            <input id="betaFeedbackContact" type="text" placeholder="Discord, WhatsApp, correo..." />
+          </label>
+          <label>
+            Adjuntar contexto automatico
+            <select id="betaFeedbackContext">
+              <option value="full">Completo</option>
+              <option value="light">Ligero</option>
+            </select>
+          </label>
+          <label>
+            Envio directo
+            <select id="betaFeedbackSendMethod">
+              <option value="googleForm">Google Form</option>
+              <option value="email">Correo preparado</option>
+              <option value="endpoint">Endpoint / webhook</option>
+            </select>
+          </label>
+          <label class="wide">
+            Link prellenado de Google Form
+            <input id="betaFeedbackGoogleForm" type="text" placeholder="https://docs.google.com/forms/..." />
+          </label>
+          <label>
+            Correo destino
+            <input id="betaFeedbackEmail" type="text" placeholder="tu-correo@dominio.com" />
+          </label>
+          <label class="wide">
+            Endpoint o webhook
+            <input id="betaFeedbackEndpoint" type="text" placeholder="https://..." />
+          </label>
+        </div>
+        <details class="beta-feedback-preview">
+          <summary>Ver contexto que se adjuntara</summary>
+          <pre id="betaFeedbackContextPreview"></pre>
+        </details>
+        <div class="export-actions">
+          <button id="sendBetaFeedback" type="button">Enviar directo</button>
+          <button id="saveBetaFeedback" type="button">Guardar reporte</button>
+          <button id="copyBetaFeedback" class="ghost" type="button">Copiar reporte</button>
+          <button id="downloadBetaFeedback" class="ghost" type="button">Descargar JSON</button>
+          <button id="downloadBetaFeedbackArchive" class="ghost" type="button">Descargar historial</button>
+        </div>
+        <p id="betaFeedbackStatus" class="import-status"></p>
+      </article>
+    </section>
+
+    <script src="app.js?v=20260610-data-pack-updater"></script>
+    <script src="pwa.js?v=20260610-data-pack-updater"></script>
+  </body>
+</html>
