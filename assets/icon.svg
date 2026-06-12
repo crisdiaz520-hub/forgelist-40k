@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#14201c"/>
-  <path d="M82 118h348v276H82z" fill="#f4f7f3"/>
-  <path d="M111 152h290v34H111zm0 70h170v28H111zm0 50h230v28H111zm0 50h138v28H111z" fill="#14201c"/>
-  <path d="M333 217l45 45-92 92h-45v-45z" fill="#4c8068"/>
-  <path d="M366 184l45 45-22 22-45-45z" fill="#d2b16a"/>
-  <text x="256" y="470" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="700" fill="#f4f7f3">FL</text>
-</svg>
