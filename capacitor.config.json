@@ -1,9 +1,0 @@
-{
-  "appId": "com.forgelist40k.app",
-  "appName": "ForgeList 40K",
-  "webDir": "dist/web",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  }
-}
