@@ -1,0 +1,28 @@
+{
+  "packs": [
+    {
+      "edition": "10e",
+      "channel": "10e-stable",
+      "version": "2026.06.10",
+      "notes": "Puntos y reglas estables de 10ma edicion.",
+      "files": {
+        "factions.json": "https://example.com/forgelist-data/10e/factions.json",
+        "detachment-rules.json": "https://example.com/forgelist-data/10e/detachment-rules.json",
+        "detachment-stratagems.json": "https://example.com/forgelist-data/10e/detachment-stratagems.json",
+        "unit-details.json": "https://example.com/forgelist-data/10e/unit-details.json"
+      }
+    },
+    {
+      "edition": "11e",
+      "channel": "11e-beta",
+      "version": "2026.06.10-beta.1",
+      "notes": "Primer paquete beta para reglas y puntos de 11va.",
+      "files": {
+        "factions.json": "https://example.com/forgelist-data/11e-beta/factions.json",
+        "detachment-rules.json": "https://example.com/forgelist-data/11e-beta/detachment-rules.json",
+        "detachment-stratagems.json": "https://example.com/forgelist-data/11e-beta/detachment-stratagems.json",
+        "unit-details.json": "https://example.com/forgelist-data/11e-beta/unit-details.json"
+      }
+    }
+  ]
+}

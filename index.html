@@ -14,6 +14,7 @@
   </head>
   <body>
     <button id="installApp" class="install-app hidden" type="button">Instalar app</button>
+    <button id="openBetaFeedback" class="beta-feedback-button hidden" type="button">Feedback beta</button>
     <main id="listLibrary" class="library-shell">
       <section class="library-hero">
         <div class="brand">
@@ -38,9 +39,97 @@
         <button id="createList" type="button">Crear lista</button>
       </section>
 
+      <section class="panel user-profile-panel">
+        <div class="section-title">
+          <div>
+            <h3>Perfil de usuario</h3>
+            <p class="mini">Guarda preferencias para autopick, analisis y nuevas listas.</p>
+          </div>
+          <button id="deleteUserProfile" class="ghost danger" type="button">Borrar perfil</button>
+        </div>
+        <div class="user-profile-grid">
+          <label>
+            Perfil activo
+            <select id="userProfileSelect"></select>
+          </label>
+          <label>
+            Nombre
+            <input id="userProfileName" type="text" placeholder="Tu nombre o nickname" />
+          </label>
+          <label>
+            Faccion favorita
+            <select id="userProfileFaction"></select>
+          </label>
+          <label>
+            Arquetipo preferido
+            <select id="userProfilePlaystyle">
+              <option value="meleeRush">Melee Rush / Pressure</option>
+              <option value="trading">Trading</option>
+              <option value="gunline">Anchor / Castle / Gunline</option>
+              <option value="skew">Skew</option>
+              <option value="horde">Horde / Board Control</option>
+              <option value="alphaStrike">Alpha Strike</option>
+              <option value="midrange">Midrange</option>
+              <option value="attrition">Attrition</option>
+              <option value="mobilityTempo">Mobility / Tempo</option>
+              <option value="combo">Combo / Synergy Engine</option>
+            </select>
+          </label>
+          <label>
+            Experiencia
+            <select id="userProfileExperience">
+              <option value="new">Nueva</option>
+              <option value="mid">Intermedia</option>
+              <option value="expert">Experta</option>
+            </select>
+          </label>
+          <label>
+            Riesgo preferido
+            <input id="userProfileRisk" type="range" min="1" max="10" value="5" />
+          </label>
+          <label>
+            Objetivo principal
+            <select id="userProfileGoal">
+              <option value="competitive">Competitivo</option>
+              <option value="casual">Casual</option>
+              <option value="narrative">Narrativo</option>
+            </select>
+          </label>
+          <label>
+            Meta local habitual
+            <select id="userProfileMeta">
+              <option value="balanced">Balanceado</option>
+              <option value="horde">Mucho horde</option>
+              <option value="elite">Elite resistente</option>
+              <option value="vehicle">Vehiculos/monstruos</option>
+              <option value="indirect">Indirecto y gunlines</option>
+            </select>
+          </label>
+        </div>
+        <div class="export-actions">
+          <button id="saveUserProfile" type="button">Guardar perfil</button>
+          <button id="createUserProfile" class="ghost" type="button">Nuevo perfil</button>
+          <button id="startGuidedTour" class="ghost" type="button">Prueba guiada</button>
+          <label class="beta-toggle">
+            <input id="betaTesterMode" type="checkbox" />
+            Modo beta tester
+          </label>
+        </div>
+        <p id="userProfileStatus" class="import-status"></p>
+      </section>
+
       <section class="library-content">
         <div class="section-title">
-          <h3>Mis listas</h3>
+          <div>
+            <h3>Mis listas</h3>
+            <label class="edition-picker">
+              Edicion
+              <select id="libraryEdition">
+                <option value="10e">10ma edicion</option>
+                <option value="11e">11va edicion</option>
+              </select>
+            </label>
+          </div>
           <button id="refreshLists" class="ghost" type="button">Actualizar</button>
         </div>
         <div id="savedLists" class="saved-list-grid"></div>
@@ -59,6 +148,14 @@
 
         <section class="panel compact">
           <h2>Objetivo</h2>
+          <label class="edition-picker">
+            Edicion
+            <select id="rulesEdition">
+              <option value="10e">10ma edicion</option>
+              <option value="11e">11va edicion</option>
+            </select>
+          </label>
+          <p id="editionSummary" class="mini edition-summary"></p>
           <div class="segmented" role="group" aria-label="Perfil de juego">
             <button class="active" data-profile="competitive">Competitivo</button>
             <button data-profile="casual">Casual</button>
@@ -120,6 +217,7 @@
             <select id="detachment"></select>
           </label>
           <div id="detachmentRules" class="rules-card"></div>
+          <div id="detachmentDpPanel" class="detachment-dp-panel"></div>
           <button id="openStratagems" class="wide ghost stratagem-open" type="button">Ver estratagemas</button>
           <label>
             Meta local
@@ -144,6 +242,7 @@
             <select id="enemyDetachment"></select>
           </label>
           <div id="enemyDetachmentRules" class="rules-card"></div>
+          <div id="enemyDetachmentDpPanel" class="detachment-dp-panel"></div>
           <button id="openEnemyStratagems" class="wide ghost stratagem-open" type="button">Ver estratagemas rivales</button>
           <label>
             Estilo rival
@@ -176,6 +275,7 @@
             </label>
             <div class="editor-buttons">
               <button id="saveList" type="button">Guardar</button>
+              <button id="applyUserProfile" class="ghost" type="button">Aplicar perfil</button>
               <button id="backToLibrary" class="ghost" type="button">Listas</button>
             </div>
             <p id="saveStatus" class="save-status"></p>
@@ -191,6 +291,7 @@
           <button type="button" data-workspace-tab="enemy">Army rival</button>
           <button type="button" data-workspace-tab="analysis">Analisis</button>
           <button type="button" data-workspace-tab="memory">Memoria</button>
+          <button type="button" data-workspace-tab="data">Datos</button>
         </nav>
 
         <section id="stratagemSection" class="panel stratagem-section hidden" aria-live="polite">
@@ -377,6 +478,11 @@
                 <ul id="tips"></ul>
               </article>
 
+              <article class="panel change-recommendations">
+                <h3>Cambios recomendados</h3>
+                <div id="changeRecommendations" class="change-recommendation-list"></div>
+              </article>
+
               <article class="panel matchup-panel">
                 <h3>Comparacion de listas</h3>
                 <div id="profileCompare" class="metric-list"></div>
@@ -438,6 +544,36 @@
                       <option value="flg">FLG balanced</option>
                       <option value="flgDense">FLG denso</option>
                       <option value="flgOpen">FLG abierto</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Mi Force Disposition
+                    <select id="forceDisposition">
+                      <option value="takeHold">Take & Hold</option>
+                      <option value="disruption">Disruption</option>
+                      <option value="purgeFoe">Purge The Foe</option>
+                      <option value="priorityTargets">Priority Targets</option>
+                      <option value="reconnaissance">Reconnaissance</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Force Disposition rival
+                    <select id="enemyForceDisposition">
+                      <option value="takeHold">Take & Hold</option>
+                      <option value="disruption">Disruption</option>
+                      <option value="purgeFoe">Purge The Foe</option>
+                      <option value="priorityTargets">Priority Targets</option>
+                      <option value="reconnaissance">Reconnaissance</option>
+                    </select>
+                  </label>
+                  <label class="edition-11-field">
+                    Terreno 11va
+                    <select id="terrainProfile">
+                      <option value="balancedAreas">Areas balanceadas</option>
+                      <option value="objectiveStrongholds">Objetivos fortificados</option>
+                      <option value="denseHidden">Denso / Hidden frecuente</option>
+                      <option value="openLanes">Lineas abiertas</option>
+                      <option value="mixedVertical">Mixto vertical</option>
                     </select>
                   </label>
                 </div>
@@ -508,11 +644,184 @@
               </article>
             </div>
           </div>
+
+          <div class="tab-panel" data-tab-panel="data">
+            <div class="grid data-audit-grid">
+              <article class="panel data-pack-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Actualizaciones de reglas y puntos</h3>
+                    <p class="mini">Descarga data packs remotos para actualizar puntos, unidades, detachments, reglas y datasheets sin reinstalar la app.</p>
+                  </div>
+                  <button id="checkDataPackUpdate" class="ghost" type="button">Buscar update</button>
+                </div>
+                <div class="data-pack-controls">
+                  <label>
+                    Canal
+                    <select id="dataPackChannel">
+                      <option value="10e-stable">10ma estable</option>
+                      <option value="11e-beta">11va beta</option>
+                      <option value="11e-stable">11va estable</option>
+                    </select>
+                  </label>
+                  <label class="wide">
+                    Manifest remoto
+                    <input id="dataPackManifestUrl" type="text" placeholder="https://.../forgelist-data-manifest.json" />
+                  </label>
+                  <label class="data-pack-check">
+                    <input id="dataPackAutoCheck" type="checkbox" />
+                    Revisar automaticamente al abrir
+                  </label>
+                </div>
+                <div class="export-actions">
+                  <button id="reloadDataPack" type="button">Recargar datos activos</button>
+                  <button id="clearDataPack" class="ghost danger" type="button">Volver a datos incluidos</button>
+                </div>
+                <div id="dataPackSummary" class="data-pack-summary"></div>
+                <p id="dataPackStatus" class="import-status"></p>
+              </article>
+
+              <article class="panel data-audit-panel">
+                <div class="section-title">
+                  <div>
+                    <h3>Verificador de datos</h3>
+                    <p class="mini">Audita puntos, categorias, datasheets, armas, keywords y scores tacticos del dataset activo.</p>
+                  </div>
+                  <button id="refreshDataAudit" class="ghost" type="button">Revisar</button>
+                </div>
+                <div class="data-audit-controls">
+                  <label>
+                    Faccion
+                    <select id="dataAuditFaction"></select>
+                  </label>
+                  <label>
+                    Severidad
+                    <select id="dataAuditSeverity">
+                      <option value="all">Todas</option>
+                      <option value="error">Errores</option>
+                      <option value="warn">Advertencias</option>
+                      <option value="incomplete">Datos incompletos</option>
+                    </select>
+                  </label>
+                  <label>
+                    Buscar
+                    <input id="dataAuditSearch" type="search" placeholder="Unidad, faccion, categoria..." />
+                  </label>
+                </div>
+                <div id="dataAuditSummary" class="data-audit-summary"></div>
+                <div id="dataAuditList" class="data-audit-list"></div>
+              </article>
+            </div>
+          </div>
         </section>
       </section>
     </main>
 
-    <script src="app.js?v=20260605-pwa-installable"></script>
-    <script src="pwa.js?v=20260605-pwa-installable"></script>
+    <section id="guidedTourOverlay" class="guided-tour-overlay hidden" aria-live="polite">
+      <article class="guided-tour-card">
+        <p id="guidedTourStep" class="eyebrow">Guia</p>
+        <h3 id="guidedTourTitle">Prueba guiada</h3>
+        <p id="guidedTourBody"></p>
+        <div class="guided-tour-actions">
+          <button id="skipGuidedTour" class="ghost" type="button">Omitir</button>
+          <button id="nextGuidedTour" type="button">Siguiente</button>
+        </div>
+      </article>
+    </section>
+
+    <section id="betaFeedbackOverlay" class="beta-feedback-overlay hidden" aria-live="polite">
+      <article class="beta-feedback-card">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Modo beta tester</p>
+            <h3>Enviar comentario</h3>
+            <p class="mini">El reporte adjunta contexto de la app para que el problema sea reproducible.</p>
+          </div>
+          <button id="closeBetaFeedback" class="ghost" type="button">Cerrar</button>
+        </div>
+        <div class="beta-feedback-grid">
+          <label>
+            Tipo de comentario
+            <select id="betaFeedbackType">
+              <option value="bug">Error / bug</option>
+              <option value="data">Puntos, unidad o regla incorrecta</option>
+              <option value="recommendation">Recomendacion rara</option>
+              <option value="ux">Interfaz confusa</option>
+              <option value="idea">Idea o mejora</option>
+            </select>
+          </label>
+          <label>
+            Severidad
+            <select id="betaFeedbackSeverity">
+              <option value="medium">Media</option>
+              <option value="critical">Critica</option>
+              <option value="low">Baja</option>
+            </select>
+          </label>
+          <label class="wide">
+            Titulo corto
+            <input id="betaFeedbackTitle" type="text" placeholder="Ej. No reconoce Deathwing Knights correctamente" />
+          </label>
+          <label class="wide">
+            Que paso
+            <textarea id="betaFeedbackBody" placeholder="Describe que viste, que esperabas y en que parte de la app paso."></textarea>
+          </label>
+          <label class="wide">
+            Como repetirlo
+            <textarea id="betaFeedbackSteps" placeholder="Ej. Abrir Analisis, importar esta lista, seleccionar mision X, pulsar simular..."></textarea>
+          </label>
+          <label class="wide">
+            Que esperabas que pasara
+            <textarea id="betaFeedbackExpected" placeholder="Ej. Esperaba que reconociera los enhancements y marcara los puntos correctos."></textarea>
+          </label>
+          <label>
+            Contacto opcional
+            <input id="betaFeedbackContact" type="text" placeholder="Discord, WhatsApp, correo..." />
+          </label>
+          <label>
+            Adjuntar contexto automatico
+            <select id="betaFeedbackContext">
+              <option value="full">Completo</option>
+              <option value="light">Ligero</option>
+            </select>
+          </label>
+          <label>
+            Envio directo
+            <select id="betaFeedbackSendMethod">
+              <option value="googleForm">Google Form</option>
+              <option value="email">Correo preparado</option>
+              <option value="endpoint">Endpoint / webhook</option>
+            </select>
+          </label>
+          <label class="wide">
+            Link prellenado de Google Form
+            <input id="betaFeedbackGoogleForm" type="text" placeholder="https://docs.google.com/forms/..." />
+          </label>
+          <label>
+            Correo destino
+            <input id="betaFeedbackEmail" type="text" placeholder="tu-correo@dominio.com" />
+          </label>
+          <label class="wide">
+            Endpoint o webhook
+            <input id="betaFeedbackEndpoint" type="text" placeholder="https://..." />
+          </label>
+        </div>
+        <details class="beta-feedback-preview">
+          <summary>Ver contexto que se adjuntara</summary>
+          <pre id="betaFeedbackContextPreview"></pre>
+        </details>
+        <div class="export-actions">
+          <button id="sendBetaFeedback" type="button">Enviar directo</button>
+          <button id="saveBetaFeedback" type="button">Guardar reporte</button>
+          <button id="copyBetaFeedback" class="ghost" type="button">Copiar reporte</button>
+          <button id="downloadBetaFeedback" class="ghost" type="button">Descargar JSON</button>
+          <button id="downloadBetaFeedbackArchive" class="ghost" type="button">Descargar historial</button>
+        </div>
+        <p id="betaFeedbackStatus" class="import-status"></p>
+      </article>
+    </section>
+
+    <script src="app.js?v=20260610-data-pack-updater"></script>
+    <script src="pwa.js?v=20260610-data-pack-updater"></script>
   </body>
 </html>

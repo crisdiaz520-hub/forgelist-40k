@@ -7,19 +7,105 @@ let unitEnhancements = {};
 let unitRuleReference = {};
 let unitInstanceCounter = 0;
 let unitFeatureCache = new Map();
-const dataVersion = "20260605-pwa-installable";
+const dataVersion = "20260610-data-pack-updater";
 const savedListsKey = "forgelist40k.savedLists.v1";
 const matchHistoryKey = "forgelist40k.matchHistory.v1";
+const rulesEditionKey = "forgelist40k.rulesEdition.v1";
+const userProfilesKey = "forgelist40k.userProfiles.v1";
+const activeUserProfileKey = "forgelist40k.activeUserProfile.v1";
+const betaTesterModeKey = "forgelist40k.betaTesterMode.v1";
+const betaFeedbackKey = "forgelist40k.betaFeedback.v1";
+const betaFeedbackSettingsKey = "forgelist40k.betaFeedbackSettings.v1";
+const defaultBetaFeedbackGoogleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe4KQyR25Pb6o9XayzOm_tkyup3bqw-TzprFUwJp4CkrQXZBg/viewform?usp=pp_url&entry.375539772=Error/bug&entry.816245796=Media&entry.741737959=TITLE&entry.1857125252=BODY&entry.1282817054=STEPS&entry.1812007493=EXPECTED&entry.1855082438=CONTACT&entry.490747431=CONTEXT_JSON";
+const dataPackSettingsKey = "forgelist40k.dataPacks.v1";
+const dataPackDbName = "forgelist40k-data-packs";
+const dataPackDbStore = "files";
+const dataPackFiles = ["factions.json", "detachment-rules.json", "detachment-stratagems.json", "unit-details.json"];
 const defaultListName = "Lista sin nombre";
+const editionProfiles = {
+  "10e": {
+    label: "10ma edicion",
+    summary: "Usa el sistema actual de la app: codex/datasheets 10ma, Chapter Approved, OC, battleshock, misiones y layouts ya modelados.",
+    scoring: {
+      mobility: 1,
+      scoring: 1,
+      durability: 1,
+      melee: 1,
+      shooting: 1,
+      antiTank: 1,
+      control: 1,
+    },
+    analysis: {
+      mission: 1,
+      deployment: 1,
+      layout: 1,
+      secondary: 1,
+      turns: 1,
+      matchup: 1,
+      memory: 1,
+    },
+    features: {
+      hidden: 0,
+      terrainObjectives: 0,
+      noStratStacking: 0,
+      chargeFlex: 0,
+      disembarkTempo: 0,
+      forceDisposition: 0,
+    },
+  },
+  "11e": {
+    label: "11va edicion",
+    summary: "Modo 11va: conserva codex compatibles cuando no exista datasheet nuevo y cambia el analisis hacia objetivos/terreno, Hidden, cargas mas flexibles, menos stacking de estratagemas y planes de mision mas asimetricos.",
+    scoring: {
+      mobility: 1.12,
+      scoring: 1.14,
+      durability: 1.05,
+      melee: 1.1,
+      shooting: 0.94,
+      antiTank: 0.98,
+      control: 1.18,
+    },
+    analysis: {
+      mission: 1.18,
+      deployment: 1.08,
+      layout: 1.16,
+      secondary: 1.06,
+      turns: 1.12,
+      matchup: 1.04,
+      memory: 0.9,
+    },
+    features: {
+      hidden: 1,
+      terrainObjectives: 1,
+      noStratStacking: 1,
+      chargeFlex: 1,
+      disembarkTempo: 1,
+      forceDisposition: 1,
+    },
+  },
+};
 
 const state = {
   savedLists: [],
   matchHistory: [],
+  userProfiles: [],
+  activeUserProfileId: "",
+  betaTesterMode: false,
+  betaFeedbackOpen: false,
+  betaFeedbackReports: [],
+  betaFeedbackSettings: {
+    sendMethod: "googleForm",
+    googleFormUrl: defaultBetaFeedbackGoogleFormUrl,
+    email: "",
+    endpoint: "",
+  },
   editingMatchId: null,
+  reviewingMatchId: null,
   pendingMatchImageData: null,
   pendingMatchDraft: null,
   pendingMatchEnemyList: null,
   activeListId: null,
+  rulesEdition: "10e",
   profile: "competitive",
   gameSize: 2000,
   faction: null,
@@ -28,6 +114,10 @@ const state = {
   enemyFaction: null,
   enemyDetachment: null,
   enemyRoster: [],
+  detachmentLoadouts: {
+    player: [],
+    enemy: [],
+  },
   factionRulesExpanded: false,
   detachmentRulesExpanded: {
     player: false,
@@ -49,6 +139,23 @@ const state = {
     player: new Set(),
     enemy: new Set(),
   },
+  dataAudit: {
+    factionId: "all",
+    severity: "all",
+    query: "",
+  },
+  dataPackSettings: {
+    manifestUrl: "",
+    channel: "11e-beta",
+    autoCheck: false,
+    activePacks: {},
+    lastCheckedAt: "",
+  },
+  dataPackStatus: "",
+  guidedTour: {
+    open: false,
+    index: 0,
+  },
 };
 
 const metrics = [
@@ -62,7 +169,7 @@ const metrics = [
 ];
 
 const $ = (selector) => document.querySelector(selector);
-const sectionOrder = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "Infantry", "Mounted", "Monster", "Vehicle", "Other"];
+const sectionOrder = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "Fortification", "Infantry", "Mounted", "Monster", "Vehicle", "Allied Units", "Legends", "Other"];
 const chapterApprovedMissionPool = [
   { letter: "A", mission: "takeHold", missionName: "Take and Hold", deployment: "tippingPoint", deploymentName: "Tipping Point", layouts: [1, 2, 4, 6, 7, 8] },
   { letter: "B", mission: "supplyDrop", missionName: "Supply Drop", deployment: "tippingPoint", deploymentName: "Tipping Point", layouts: [1, 2, 4, 6, 7, 8] },
@@ -753,34 +860,10 @@ const explicitFactionRules = {
 };
 
 async function init() {
+  state.rulesEdition = loadRulesEdition();
+  state.dataPackSettings = loadDataPackSettings();
   try {
-    const response = await fetch(`data/factions.json?v=${dataVersion}`);
-    const data = await response.json();
-    factions = data.factions;
-    enhancements = data.enhancements;
-    try {
-      const detachmentResponse = await fetch(`data/detachment-rules.json?v=${dataVersion}`);
-      detachmentRules = (await detachmentResponse.json()).rules || {};
-    } catch {
-      detachmentRules = {};
-    }
-    try {
-      const stratagemResponse = await fetch(`data/detachment-stratagems.json?v=${dataVersion}`);
-      detachmentStratagems = (await stratagemResponse.json()).stratagems || {};
-    } catch {
-      detachmentStratagems = {};
-    }
-    try {
-      const unitDetailsResponse = await fetch(`data/unit-details.json?v=${dataVersion}`);
-      const unitDetailData = await unitDetailsResponse.json();
-      unitDetails = unitDetailData.units || {};
-      unitEnhancements = unitDetailData.enhancements || {};
-      unitRuleReference = { ...coreRuleReferences, ...(unitDetailData.rules || {}) };
-    } catch {
-      unitDetails = {};
-      unitEnhancements = {};
-      unitRuleReference = { ...coreRuleReferences };
-    }
+    await loadGameData();
   } catch (error) {
     document.body.innerHTML = "<main class='load-error'>No se pudo cargar la base de datos offline. Abre la app instalada o desde una direccion web segura para completar la primera carga.</main>";
     return;
@@ -792,14 +875,71 @@ async function init() {
   state.enemyDetachment = state.enemyFaction.detachments[0];
   state.savedLists = loadSavedLists();
   state.matchHistory = loadMatchHistory();
+  state.userProfiles = loadUserProfiles();
+  state.activeUserProfileId = loadActiveUserProfileId();
+  state.betaTesterMode = loadBetaTesterMode();
+  state.betaFeedbackReports = loadBetaFeedbackReports();
+  state.betaFeedbackSettings = loadBetaFeedbackSettings();
 
   populateFactionSelects();
+  populateUserProfileFactionSelect();
   populateMissionControls();
   bindEvents();
+  syncEditionControls();
   renderDetachments("player");
   renderDetachments("enemy");
   render();
   showLibrary();
+  if (state.dataPackSettings.autoCheck) {
+    setTimeout(() => checkDataPackUpdate({ silent: true }), 800);
+  }
+}
+
+async function loadGameData() {
+  const response = await fetchEditionData("factions.json");
+  const data = await response.json();
+  factions = data.factions || [];
+  enhancements = data.enhancements || {};
+  try {
+    const detachmentResponse = await fetchEditionData("detachment-rules.json");
+    detachmentRules = (await detachmentResponse.json()).rules || {};
+  } catch {
+    detachmentRules = {};
+  }
+  try {
+    const stratagemResponse = await fetchEditionData("detachment-stratagems.json");
+    detachmentStratagems = (await stratagemResponse.json()).stratagems || {};
+  } catch {
+    detachmentStratagems = {};
+  }
+  try {
+    const unitDetailsResponse = await fetchEditionData("unit-details.json");
+    const unitDetailData = await unitDetailsResponse.json();
+    unitDetails = unitDetailData.units || {};
+    unitEnhancements = unitDetailData.enhancements || {};
+    unitRuleReference = { ...coreRuleReferences, ...(unitDetailData.rules || {}) };
+  } catch {
+    unitDetails = {};
+    unitEnhancements = {};
+    unitRuleReference = { ...coreRuleReferences };
+  }
+}
+
+async function fetchEditionData(fileName) {
+  const cached = await readDataPackResponse(state.rulesEdition, fileName);
+  if (cached) return cached;
+  const editionPath = `data/${state.rulesEdition}/${fileName}?v=${dataVersion}`;
+  if (state.rulesEdition !== "10e") {
+    try {
+      const editionResponse = await fetch(editionPath);
+      if (editionResponse.ok) return editionResponse;
+    } catch {
+      // Fall back to compatible baseline data below.
+    }
+  }
+  const response = await fetch(`data/${fileName}?v=${dataVersion}`);
+  if (!response.ok) throw new Error(`No se pudo cargar ${fileName}`);
+  return response;
 }
 
 function populateFactionSelects() {
@@ -809,6 +949,13 @@ function populateFactionSelects() {
     factions.forEach((faction) => select.append(new Option(faction.name, faction.id)));
   });
   $("#enemyFaction").value = state.enemyFaction.id;
+}
+
+function populateUserProfileFactionSelect() {
+  const select = $("#userProfileFaction");
+  if (!select) return;
+  select.replaceChildren();
+  factions.forEach((faction) => select.append(new Option(faction.name, faction.id)));
 }
 
 function populateMissionControls() {
@@ -860,6 +1007,264 @@ function loadMatchHistory() {
   }
 }
 
+function loadUserProfiles() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(userProfilesKey) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => item && item.id) : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadActiveUserProfileId() {
+  try {
+    return localStorage.getItem(activeUserProfileKey) || "";
+  } catch {
+    return "";
+  }
+}
+
+function loadBetaTesterMode() {
+  try {
+    return localStorage.getItem(betaTesterModeKey) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function persistBetaTesterMode() {
+  try {
+    localStorage.setItem(betaTesterModeKey, String(Boolean(state.betaTesterMode)));
+  } catch {
+    // Non-critical: mode still works for the current session.
+  }
+}
+
+function loadBetaFeedbackReports() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(betaFeedbackKey) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => item && item.id) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistBetaFeedbackReports() {
+  try {
+    localStorage.setItem(betaFeedbackKey, JSON.stringify(state.betaFeedbackReports.slice(0, 80)));
+  } catch {
+    setBetaFeedbackStatus("No se pudo guardar localmente, pero puedes copiar o descargar el reporte.");
+  }
+}
+
+function loadBetaFeedbackSettings() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(betaFeedbackSettingsKey) || "{}");
+    return {
+      sendMethod: parsed.sendMethod || "googleForm",
+      googleFormUrl: parsed.googleFormUrl || defaultBetaFeedbackGoogleFormUrl,
+      email: parsed.email || "",
+      endpoint: parsed.endpoint || "",
+    };
+  } catch {
+    return { sendMethod: "googleForm", googleFormUrl: defaultBetaFeedbackGoogleFormUrl, email: "", endpoint: "" };
+  }
+}
+
+function persistBetaFeedbackSettings() {
+  try {
+    localStorage.setItem(betaFeedbackSettingsKey, JSON.stringify(state.betaFeedbackSettings));
+  } catch {
+    // Feedback can still be copied/downloaded.
+  }
+}
+
+function loadDataPackSettings() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(dataPackSettingsKey) || "{}");
+    return {
+      manifestUrl: parsed.manifestUrl || "",
+      channel: parsed.channel || "11e-beta",
+      autoCheck: Boolean(parsed.autoCheck),
+      activePacks: parsed.activePacks && typeof parsed.activePacks === "object" ? parsed.activePacks : {},
+      lastCheckedAt: parsed.lastCheckedAt || "",
+    };
+  } catch {
+    return { manifestUrl: "", channel: "11e-beta", autoCheck: false, activePacks: {}, lastCheckedAt: "" };
+  }
+}
+
+function persistDataPackSettings() {
+  try {
+    localStorage.setItem(dataPackSettingsKey, JSON.stringify(state.dataPackSettings));
+  } catch {
+    state.dataPackStatus = "No se pudo guardar la configuracion de actualizaciones en este dispositivo.";
+  }
+}
+
+function dataPackKey(edition, fileName) {
+  return `${edition}/${fileName}`;
+}
+
+function openDataPackDb() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("IndexedDB no esta disponible en este dispositivo."));
+      return;
+    }
+    const request = indexedDB.open(dataPackDbName, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(dataPackDbStore, { keyPath: "id" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("No se pudo abrir IndexedDB."));
+  });
+}
+
+async function dataPackDbOperation(mode, action) {
+  const db = await openDataPackDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(dataPackDbStore, mode);
+    const store = tx.objectStore(dataPackDbStore);
+    const result = action(store);
+    tx.oncomplete = () => {
+      db.close();
+      resolve(result?.result ?? result);
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error || new Error("No se pudo acceder al data pack."));
+    };
+  });
+}
+
+async function readDataPackRecord(edition, fileName) {
+  const active = state.dataPackSettings?.activePacks?.[edition];
+  if (!active) return null;
+  try {
+    return await dataPackDbOperation("readonly", (store) => store.get(dataPackKey(edition, fileName)));
+  } catch {
+    return null;
+  }
+}
+
+async function readDataPackResponse(edition, fileName) {
+  const record = await readDataPackRecord(edition, fileName);
+  if (!record?.body) return null;
+  return new Response(record.body, {
+    headers: {
+      "Content-Type": "application/json;charset=utf-8",
+      "X-ForgeList-Data-Pack": record.version || "installed",
+    },
+  });
+}
+
+async function writeDataPackRecord(edition, fileName, body, metadata) {
+  const record = {
+    id: dataPackKey(edition, fileName),
+    edition,
+    fileName,
+    body,
+    version: metadata.version,
+    channel: metadata.channel,
+    sourceUrl: metadata.sourceUrl || "",
+    installedAt: metadata.installedAt,
+  };
+  await dataPackDbOperation("readwrite", (store) => store.put(record));
+}
+
+async function deleteDataPackRecords(edition) {
+  await dataPackDbOperation("readwrite", (store) => {
+    dataPackFiles.forEach((fileName) => store.delete(dataPackKey(edition, fileName)));
+  });
+}
+
+function persistUserProfiles() {
+  try {
+    localStorage.setItem(userProfilesKey, JSON.stringify(state.userProfiles));
+    localStorage.setItem(activeUserProfileKey, state.activeUserProfileId || "");
+  } catch {
+    setUserProfileStatus("No se pudo guardar el perfil en este navegador.");
+  }
+}
+
+function activeUserProfile() {
+  return state.userProfiles.find((profile) => profile.id === state.activeUserProfileId) || null;
+}
+
+function defaultUserProfileValues() {
+  return {
+    name: "Mi perfil",
+    factionId: state.faction?.id || factions[0]?.id || "",
+    playstyle: "midrange",
+    experience: "mid",
+    risk: "5",
+    goal: "competitive",
+    meta: "balanced",
+  };
+}
+
+function profileFromControls(existing = {}) {
+  const now = new Date().toISOString();
+  return {
+    id: existing.id || makeProfileId(),
+    createdAt: existing.createdAt || now,
+    updatedAt: now,
+    name: $("#userProfileName").value.trim() || `Perfil ${state.userProfiles.length + 1}`,
+    factionId: $("#userProfileFaction").value || factions[0]?.id || "",
+    playstyle: $("#userProfilePlaystyle").value || "midrange",
+    experience: $("#userProfileExperience").value || "mid",
+    risk: $("#userProfileRisk").value || "5",
+    goal: $("#userProfileGoal").value || "competitive",
+    meta: $("#userProfileMeta").value || "balanced",
+  };
+}
+
+function makeProfileId() {
+  return `profile-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function loadRulesEdition() {
+  try {
+    const saved = localStorage.getItem(rulesEditionKey);
+    return editionProfiles[saved] ? saved : "10e";
+  } catch {
+    return "10e";
+  }
+}
+
+function setRulesEdition(edition, options = {}) {
+  if (!editionProfiles[edition]) return;
+  state.rulesEdition = edition;
+  try {
+    localStorage.setItem(rulesEditionKey, edition);
+  } catch {
+    // Non-critical: edition still works for the current session.
+  }
+  syncEditionControls();
+  if (!options.silent) setSaveStatus("Cambios sin guardar");
+  reloadDataFromActivePack();
+}
+
+function currentEditionProfile() {
+  return editionProfiles[state.rulesEdition] || editionProfiles["10e"];
+}
+
+function syncEditionControls() {
+  ["#rulesEdition", "#libraryEdition"].forEach((selector) => {
+    const select = document.querySelector(selector);
+    if (select) select.value = state.rulesEdition;
+  });
+  const summary = $("#editionSummary");
+  if (summary) summary.textContent = currentEditionProfile().summary;
+}
+
+function renderEditionAnalysisControls() {
+  document.querySelectorAll(".edition-11-field").forEach((element) => {
+    element.classList.toggle("hidden", state.rulesEdition !== "11e");
+  });
+}
+
 function persistSavedLists() {
   try {
     localStorage.setItem(savedListsKey, JSON.stringify(state.savedLists));
@@ -877,6 +1282,7 @@ function persistMatchHistory() {
 }
 
 function renderLibrary() {
+  renderUserProfileControls();
   const container = $("#savedLists");
   container.replaceChildren();
   state.savedLists = loadSavedLists().sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
@@ -900,6 +1306,7 @@ function renderLibrary() {
         <p class="eyebrow">${factionName}</p>
         <h3>${escapeHtml(list.name || defaultListName)}</h3>
         <p>${escapeHtml(detachmentName)} - ${playerPoints} / ${list.gameSize || 2000} pts</p>
+        <p class="mini">${escapeHtml(editionProfiles[list.rulesEdition || "10e"]?.label || "10ma edicion")}</p>
         <p class="mini">Rival: ${enemyPoints} pts - Actualizada ${formatSavedDate(list.updatedAt)}</p>
       </div>
       <div class="saved-list-actions">
@@ -913,6 +1320,568 @@ function renderLibrary() {
     card.querySelector("[data-list-action='delete']").addEventListener("click", () => deleteSavedList(list.id));
     container.append(card);
   });
+}
+
+function renderUserProfileControls() {
+  const select = $("#userProfileSelect");
+  if (!select) return;
+  const previous = state.activeUserProfileId || "";
+  select.replaceChildren();
+  select.append(new Option("Sin perfil activo", ""));
+  state.userProfiles
+    .slice()
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+    .forEach((profile) => select.append(new Option(profile.name || "Perfil sin nombre", profile.id)));
+  if (previous && state.userProfiles.some((profile) => profile.id === previous)) select.value = previous;
+  else {
+    state.activeUserProfileId = "";
+    select.value = "";
+  }
+  fillUserProfileForm(activeUserProfile() || defaultUserProfileValues());
+  setUserProfileStatus(activeUserProfile() ? `Perfil activo: ${activeUserProfile().name}` : "Sin perfil activo. Puedes crear uno para usarlo como base de nuevas listas.");
+}
+
+function fillUserProfileForm(profile) {
+  $("#userProfileName").value = profile.name || "";
+  $("#userProfileFaction").value = factions.some((faction) => faction.id === profile.factionId) ? profile.factionId : factions[0]?.id || "";
+  $("#userProfilePlaystyle").value = profile.playstyle || "midrange";
+  $("#userProfileExperience").value = profile.experience || "mid";
+  $("#userProfileRisk").value = profile.risk || "5";
+  $("#userProfileGoal").value = profile.goal || "competitive";
+  $("#userProfileMeta").value = profile.meta || "balanced";
+}
+
+function setUserProfileStatus(message) {
+  const status = $("#userProfileStatus");
+  if (status) status.textContent = message || "";
+}
+
+function saveUserProfileFromControls() {
+  const existing = activeUserProfile();
+  const profile = profileFromControls(existing || {});
+  const index = state.userProfiles.findIndex((item) => item.id === profile.id);
+  if (index >= 0) state.userProfiles[index] = profile;
+  else state.userProfiles.push(profile);
+  state.activeUserProfileId = profile.id;
+  persistUserProfiles();
+  renderUserProfileControls();
+  setUserProfileStatus(`Perfil guardado: ${profile.name}`);
+}
+
+function createUserProfileFromControls() {
+  const profile = profileFromControls({});
+  state.userProfiles.push(profile);
+  state.activeUserProfileId = profile.id;
+  persistUserProfiles();
+  renderUserProfileControls();
+  setUserProfileStatus(`Perfil creado: ${profile.name}. Puedes seguir la prueba guiada o saltarla.`);
+  startGuidedTour({ fromProfile: true });
+}
+
+function deleteActiveUserProfile() {
+  const profile = activeUserProfile();
+  if (!profile) {
+    setUserProfileStatus("No hay perfil activo para borrar.");
+    return;
+  }
+  if (!confirm(`Borrar el perfil "${profile.name}"? Tus listas y memoria no se borran.`)) return;
+  state.userProfiles = state.userProfiles.filter((item) => item.id !== profile.id);
+  state.activeUserProfileId = "";
+  persistUserProfiles();
+  renderUserProfileControls();
+}
+
+function applyActiveUserProfileToCurrentList(options = {}) {
+  const profile = activeUserProfile();
+  if (!profile) {
+    setSaveStatus("No hay perfil activo para aplicar");
+    return;
+  }
+  state.profile = profile.goal || "competitive";
+  $("#playstyle").value = profile.playstyle || "midrange";
+  $("#risk").value = profile.risk || "5";
+  $("#experience").value = profile.experience || "mid";
+  $("#meta").value = profile.meta || "balanced";
+  const preferredFaction = findFaction(profile.factionId);
+  if (preferredFaction && (!state.roster.length || options.forceFaction)) {
+    state.faction = preferredFaction;
+    state.detachment = state.faction.detachments[0];
+    state.detachmentLoadouts.player = [state.detachment?.id].filter(Boolean);
+    state.catalogSections.player.clear();
+    $("#faction").value = state.faction.id;
+    renderDetachments("player");
+    $("#detachment").value = state.detachment.id;
+  }
+  setProfileButtons();
+  setSaveStatus(`Perfil aplicado: ${profile.name}`);
+  if (options.renderAfter) render();
+}
+
+function applyUserProfileDefaultsToDocument(document) {
+  const profile = activeUserProfile();
+  if (!profile) return document;
+  const faction = findFaction(profile.factionId) || findFaction(document.factionId) || factions[0];
+  return {
+    ...document,
+    profile: profile.goal || document.profile,
+    playstyle: profile.playstyle || document.playstyle,
+    risk: profile.risk || document.risk,
+    experience: profile.experience || document.experience,
+    meta: profile.meta || document.meta,
+    factionId: faction?.id || document.factionId,
+    detachmentId: faction?.detachments?.[0]?.id || document.detachmentId,
+    detachmentLoadoutIds: faction?.detachments?.[0]?.id ? [faction.detachments[0].id] : document.detachmentLoadoutIds,
+    userProfileId: profile.id,
+  };
+}
+
+const guidedTourSteps = [
+  {
+    title: "Biblioteca y perfiles",
+    body: "Aqui eliges tu perfil, creas listas y recuperas partidas guardadas. El perfil sirve como base para nuevas listas, autopick y analisis.",
+    action: () => showLibrary(),
+  },
+  {
+    title: "Mi army",
+    body: "En esta pestaña eliges faccion, detachment, unidades, equipamiento, warlord y lideres. El boton Completar lista usa tu perfil para proponer unidades coherentes.",
+    action: () => {
+      ensureGuidedTourEditor();
+      activateWorkspaceTab("player");
+    },
+  },
+  {
+    title: "Army rival",
+    body: "Aqui puedes importar o construir la lista enemiga. La app usa esa lista para comparar matchup real, no solo la fuerza interna de tu army.",
+    action: () => {
+      ensureGuidedTourEditor();
+      activateWorkspaceTab("enemy");
+    },
+  },
+  {
+    title: "Analisis",
+    body: "Esta seccion cruza lista propia, rival, mision, deployment, layout, memoria y edicion. En 11va tambien entran Force Dispositions y terreno.",
+    action: () => {
+      ensureGuidedTourEditor();
+      activateWorkspaceTab("analysis");
+    },
+  },
+  {
+    title: "Memoria del jugador",
+    body: "Aqui guardas partidas, imagenes de Tabletop Battles, listas usadas, secundarias y resultados. Esa memoria ajusta probabilidades y recomendaciones futuras.",
+    action: () => {
+      ensureGuidedTourEditor();
+      activateWorkspaceTab("memory");
+    },
+  },
+  {
+    title: "Verificador de datos",
+    body: "Esta herramienta revisa errores de puntos, categorias, datasheets incompletos y scores sospechosos. Es la zona para encontrar problemas antes de que afecten recomendaciones.",
+    action: () => {
+      ensureGuidedTourEditor();
+      activateWorkspaceTab("data");
+    },
+  },
+  {
+    title: "Listo para probar",
+    body: "Puedes empezar importando una lista propia, cargar un rival y revisar Analisis. Si algo se ve raro, Datos te ayuda a ubicar si el problema viene de la base.",
+    action: () => {},
+  },
+];
+
+function startGuidedTour() {
+  state.guidedTour.open = true;
+  state.guidedTour.index = 0;
+  renderGuidedTour();
+}
+
+function closeGuidedTour() {
+  state.guidedTour.open = false;
+  renderGuidedTour();
+}
+
+function nextGuidedTourStep() {
+  if (!state.guidedTour.open) return;
+  if (state.guidedTour.index >= guidedTourSteps.length - 1) {
+    closeGuidedTour();
+    return;
+  }
+  state.guidedTour.index += 1;
+  renderGuidedTour();
+}
+
+function renderGuidedTour() {
+  const overlay = $("#guidedTourOverlay");
+  if (!overlay) return;
+  overlay.classList.toggle("hidden", !state.guidedTour.open);
+  if (!state.guidedTour.open) return;
+  const index = Math.max(0, Math.min(guidedTourSteps.length - 1, state.guidedTour.index));
+  const step = guidedTourSteps[index];
+  step.action?.();
+  $("#guidedTourStep").textContent = `Paso ${index + 1} de ${guidedTourSteps.length}`;
+  $("#guidedTourTitle").textContent = step.title;
+  $("#guidedTourBody").textContent = step.body;
+  $("#nextGuidedTour").textContent = index >= guidedTourSteps.length - 1 ? "Terminar" : "Siguiente";
+}
+
+function ensureGuidedTourEditor() {
+  if (!$("#editorShell").classList.contains("hidden")) return;
+  const document = createBlankListDocument("Prueba guiada");
+  applyListDocument(document);
+  showEditor();
+  setSaveStatus("Prueba guiada sin guardar");
+}
+
+function renderBetaTesterUi() {
+  const toggle = $("#betaTesterMode");
+  if (toggle) toggle.checked = Boolean(state.betaTesterMode);
+  syncBetaFeedbackSettingsControls();
+  const button = $("#openBetaFeedback");
+  if (button) button.classList.toggle("hidden", !state.betaTesterMode);
+  const overlay = $("#betaFeedbackOverlay");
+  if (overlay) overlay.classList.toggle("hidden", !state.betaFeedbackOpen);
+  if (state.betaFeedbackOpen) renderBetaFeedbackPreview();
+}
+
+function syncBetaFeedbackSettingsControls() {
+  const settings = state.betaFeedbackSettings || {};
+  if ($("#betaFeedbackSendMethod")) $("#betaFeedbackSendMethod").value = settings.sendMethod || "googleForm";
+  if ($("#betaFeedbackGoogleForm")) $("#betaFeedbackGoogleForm").value = settings.googleFormUrl || defaultBetaFeedbackGoogleFormUrl;
+  if ($("#betaFeedbackEmail")) $("#betaFeedbackEmail").value = settings.email || "";
+  if ($("#betaFeedbackEndpoint")) $("#betaFeedbackEndpoint").value = settings.endpoint || "";
+}
+
+function updateBetaFeedbackSettingsFromControls() {
+  state.betaFeedbackSettings = {
+    sendMethod: $("#betaFeedbackSendMethod")?.value || "googleForm",
+    googleFormUrl: $("#betaFeedbackGoogleForm")?.value.trim() || defaultBetaFeedbackGoogleFormUrl,
+    email: $("#betaFeedbackEmail")?.value.trim() || "",
+    endpoint: $("#betaFeedbackEndpoint")?.value.trim() || "",
+  };
+  persistBetaFeedbackSettings();
+}
+
+function openBetaFeedback() {
+  state.betaFeedbackOpen = true;
+  clearBetaFeedbackStatus();
+  renderBetaTesterUi();
+}
+
+function closeBetaFeedback() {
+  state.betaFeedbackOpen = false;
+  clearBetaFeedbackStatus();
+  renderBetaTesterUi();
+}
+
+function clearBetaFeedbackStatus() {
+  setBetaFeedbackStatus("");
+}
+
+function betaFeedbackFormValues() {
+  return {
+    type: $("#betaFeedbackType")?.value || "bug",
+    severity: $("#betaFeedbackSeverity")?.value || "medium",
+    title: $("#betaFeedbackTitle")?.value.trim() || "",
+    body: $("#betaFeedbackBody")?.value.trim() || "",
+    steps: $("#betaFeedbackSteps")?.value.trim() || "",
+    expected: $("#betaFeedbackExpected")?.value.trim() || "",
+    contact: $("#betaFeedbackContact")?.value.trim() || "",
+    contextLevel: $("#betaFeedbackContext")?.value || "full",
+  };
+}
+
+function buildBetaFeedbackReport() {
+  const values = betaFeedbackFormValues();
+  return {
+    id: `feedback-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+    app: "ForgeList 40K",
+    version: dataVersion,
+    type: values.type,
+    severity: values.severity,
+    title: values.title || "(sin titulo)",
+    body: values.body,
+    steps: values.steps,
+    expected: values.expected,
+    contact: values.contact,
+    context: collectBetaFeedbackContext(values.contextLevel),
+  };
+}
+
+function renderBetaFeedbackPreview() {
+  const preview = $("#betaFeedbackContextPreview");
+  if (!preview) return;
+  const values = betaFeedbackFormValues();
+  preview.textContent = JSON.stringify(collectBetaFeedbackContext(values.contextLevel), null, 2);
+}
+
+function collectBetaFeedbackContext(level = "full") {
+  const playerValidation = state.roster.length ? validateRoster("player") : { issues: [] };
+  const enemyValidation = state.enemyRoster.length ? validateRoster("enemy") : { issues: [] };
+  const activeTab = activeWorkspaceTabName();
+  const context = {
+    appVersion: dataVersion,
+    rulesEdition: state.rulesEdition,
+    activeTab,
+    screen: $("#editorShell")?.classList.contains("hidden") ? "library" : "editor",
+    url: location.href,
+    userAgent: navigator.userAgent,
+    profile: activeUserProfile() ? {
+      name: activeUserProfile().name,
+      faction: findFaction(activeUserProfile().factionId)?.name || "",
+      playstyle: activeUserProfile().playstyle,
+      experience: activeUserProfile().experience,
+      risk: activeUserProfile().risk,
+      goal: activeUserProfile().goal,
+      meta: activeUserProfile().meta,
+    } : null,
+    currentList: {
+      id: state.activeListId || "",
+      name: $("#activeListName")?.value.trim() || defaultListName,
+      gameSize: state.gameSize,
+      playstyle: $("#playstyle")?.value || "",
+      risk: $("#risk")?.value || "",
+      experience: $("#experience")?.value || "",
+      meta: $("#meta")?.value || "",
+      faction: state.faction?.name || "",
+      detachment: selectedDetachment("player")?.name || "",
+      activeDetachments: activeDetachments("player").map((detachment) => detachment.name),
+      points: totalPoints(state.roster),
+      units: state.roster.length,
+      validation: summarizeValidationIssues(playerValidation.issues),
+    },
+    enemyList: {
+      faction: state.enemyFaction?.name || "",
+      detachment: selectedDetachment("enemy")?.name || "",
+      activeDetachments: activeDetachments("enemy").map((detachment) => detachment.name),
+      points: totalPoints(state.enemyRoster),
+      units: state.enemyRoster.length,
+      inferredStyle: $("#enemyStyle")?.value || "",
+      validation: summarizeValidationIssues(enemyValidation.issues),
+    },
+    analysis: {
+      missionPreset: $("#missionPreset")?.value || "",
+      mission: $("#mission")?.value || "",
+      deployment: $("#deployment")?.value || "",
+      layout: $("#layout")?.value || "",
+      forceDisposition: $("#forceDisposition")?.value || "",
+      enemyForceDisposition: $("#enemyForceDisposition")?.value || "",
+      terrainProfile: $("#terrainProfile")?.value || "",
+      winRate: $("#winRate")?.textContent || "",
+      scores: {
+        competitive: $("#competitiveScore")?.textContent || "",
+        casual: $("#casualScore")?.textContent || "",
+        narrative: $("#narrativeScore")?.textContent || "",
+      },
+    },
+    memory: {
+      savedLists: state.savedLists.length,
+      matchReports: state.matchHistory.length,
+      pendingMatchDraft: Boolean(state.pendingMatchDraft),
+    },
+  };
+  if (level === "light") return context;
+  return {
+    ...context,
+    playerUnits: summarizeFeedbackUnits(state.roster),
+    enemyUnits: summarizeFeedbackUnits(state.enemyRoster),
+    lastDataAudit: state.dataAudit,
+  };
+}
+
+function summarizeValidationIssues(issues = []) {
+  return {
+    errors: issues.filter((issue) => issue.severity === "error").length,
+    warnings: issues.filter((issue) => issue.severity === "warning").length,
+    items: issues.slice(0, 12).map((issue) => ({
+      severity: issue.severity,
+      title: issue.title,
+      message: issue.message,
+      location: issue.location || "",
+    })),
+  };
+}
+
+function summarizeFeedbackUnits(units) {
+  return units.slice(0, 80).map((unitData) => ({
+    name: unitData.name,
+    section: unitData.section,
+    points: unitTotalPoints(unitData),
+    source: rosterSourceLabel(unitData),
+    config: {
+      models: unitData.config?.modelCount || null,
+      warlord: Boolean(unitData.config?.warlord),
+      enhancement: unitData.config?.enhancement || "",
+      leaderRef: unitData.config?.leaderRef || "",
+      wargear: unitData.config?.wargear || [],
+      importedWargearCounts: unitData.config?.importedWargearCounts || {},
+    },
+  }));
+}
+
+function activeWorkspaceTabName() {
+  return document.querySelector("[data-workspace-tab].active")?.dataset.workspaceTab || "library";
+}
+
+function saveBetaFeedback() {
+  const values = betaFeedbackFormValues();
+  if (!values.body && !values.title) {
+    setBetaFeedbackStatus("Escribe al menos un titulo o una descripcion para que el reporte sirva.");
+    return null;
+  }
+  const report = buildBetaFeedbackReport();
+  state.betaFeedbackReports = [report, ...state.betaFeedbackReports].slice(0, 80);
+  persistBetaFeedbackReports();
+  setBetaFeedbackStatus("Reporte guardado localmente. Copialo o descargalo para mandarlo al desarrollador.");
+  return report;
+}
+
+async function sendBetaFeedbackReport() {
+  updateBetaFeedbackSettingsFromControls();
+  const settings = state.betaFeedbackSettings || {};
+  const report = saveBetaFeedback();
+  if (!report) return;
+  if (settings.sendMethod === "googleForm") {
+    sendBetaFeedbackToGoogleForm(report, settings.googleFormUrl);
+    return;
+  }
+  if (settings.sendMethod === "endpoint") {
+    await sendBetaFeedbackToEndpoint(report, settings.endpoint);
+    return;
+  }
+  sendBetaFeedbackByEmail(report, settings.email);
+}
+
+function sendBetaFeedbackToGoogleForm(report, formUrl) {
+  try {
+    const url = buildBetaGoogleFormUrl(report, formUrl || defaultBetaFeedbackGoogleFormUrl);
+    const opened = window.open(url, "_blank", "noopener");
+    if (!opened) window.location.href = url;
+    setBetaFeedbackStatus("Google Form abierto con el reporte prellenado. El tester solo debe revisar y pulsar Enviar.");
+  } catch (error) {
+    setBetaFeedbackStatus(`No pude preparar el Google Form (${error.message}). El reporte quedo guardado; puedes copiarlo o descargarlo.`);
+  }
+}
+
+function buildBetaGoogleFormUrl(report, formUrl) {
+  const url = new URL(formUrl || defaultBetaFeedbackGoogleFormUrl);
+  const context = JSON.stringify(report.context, null, 2);
+  const values = {
+    "entry.375539772": betaFeedbackTypeLabel(report.type),
+    "entry.816245796": betaFeedbackSeverityLabel(report.severity),
+    "entry.741737959": report.title || "",
+    "entry.1857125252": report.body || "",
+    "entry.1282817054": report.steps || "",
+    "entry.1812007493": report.expected || "",
+    "entry.1855082438": report.contact || "",
+    "entry.490747431": context,
+  };
+  Object.entries(values).forEach(([key, value]) => url.searchParams.set(key, truncateFormValue(value, key === "entry.490747431" ? 12000 : 1800)));
+  if (url.toString().length > 14500) {
+    url.searchParams.set("entry.490747431", truncateFormValue(context, 7000));
+  }
+  return url.toString();
+}
+
+function betaFeedbackTypeLabel(type) {
+  return {
+    bug: "Error/bug",
+    data: "Datos incorrectos",
+    recommendation: "Recomendación rara",
+    ux: "Interfaz confusa",
+    idea: "Idea o mejora",
+  }[type] || "Error/bug";
+}
+
+function betaFeedbackSeverityLabel(severity) {
+  return {
+    critical: "Crítica",
+    medium: "Media",
+    low: "Baja",
+  }[severity] || "Media";
+}
+
+function truncateFormValue(value, maxLength) {
+  const text = String(value || "");
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}\n\n[Contexto recortado por limite de URL. Usa Descargar JSON si se necesita el reporte completo.]`;
+}
+
+async function sendBetaFeedbackToEndpoint(report, endpoint) {
+  if (!endpoint || !/^https?:\/\//i.test(endpoint)) {
+    setBetaFeedbackStatus("Agrega un endpoint/webhook valido que empiece con http o https.");
+    return;
+  }
+  setBetaFeedbackStatus("Enviando reporte...");
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(report),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    setBetaFeedbackStatus("Reporte enviado correctamente y guardado localmente.");
+  } catch (error) {
+    setBetaFeedbackStatus(`No se pudo enviar directo (${error.message}). El reporte quedo guardado; puedes copiarlo o descargarlo.`);
+  }
+}
+
+function sendBetaFeedbackByEmail(report, email) {
+  if (!email || !/.+@.+\..+/.test(email)) {
+    setBetaFeedbackStatus("Agrega un correo destino valido para preparar el envio.");
+    return;
+  }
+  const subject = encodeURIComponent(`[ForgeList beta] ${report.severity.toUpperCase()} - ${report.title}`);
+  const body = encodeURIComponent(JSON.stringify(report, null, 2));
+  const mailto = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
+  if (mailto.length > 7800) {
+    fallbackCopyText(JSON.stringify(report, null, 2));
+    setBetaFeedbackStatus("El reporte es muy grande para correo automatico. Lo copie al portapapeles; pegalo en el correo o descarga el JSON.");
+    return;
+  }
+  window.location.href = mailto;
+  setBetaFeedbackStatus("Correo preparado con el reporte. Solo falta enviarlo desde el cliente de correo.");
+}
+
+async function copyBetaFeedbackReport() {
+  const report = saveBetaFeedback();
+  if (!report) return;
+  const text = JSON.stringify(report, null, 2);
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    else fallbackCopyText(text);
+    setBetaFeedbackStatus("Reporte copiado al portapapeles. Ya puedes pegarlo en Discord, WhatsApp, correo o GitHub.");
+  } catch {
+    fallbackCopyText(text);
+    setBetaFeedbackStatus("Reporte copiado usando metodo alterno.");
+  }
+}
+
+function downloadBetaFeedbackReport() {
+  const report = saveBetaFeedback();
+  if (!report) return;
+  const filename = `${safeFileName(report.title || "forgelist-feedback")}-${report.id}.json`;
+  downloadTextFile(filename, JSON.stringify(report, null, 2), "application/json;charset=utf-8");
+  setBetaFeedbackStatus(`Descargado ${filename}.`);
+}
+
+function downloadBetaFeedbackArchive() {
+  if (!state.betaFeedbackReports.length) {
+    setBetaFeedbackStatus("Todavia no hay reportes guardados en este dispositivo.");
+    return;
+  }
+  const filename = `forgelist-feedback-historial-${new Date().toISOString().slice(0, 10)}.json`;
+  downloadTextFile(filename, JSON.stringify({
+    app: "ForgeList 40K",
+    version: dataVersion,
+    exportedAt: new Date().toISOString(),
+    reports: state.betaFeedbackReports,
+  }, null, 2), "application/json;charset=utf-8");
+  setBetaFeedbackStatus(`Historial descargado: ${filename}.`);
+}
+
+function setBetaFeedbackStatus(message) {
+  const status = $("#betaFeedbackStatus");
+  if (status) status.textContent = message || "";
 }
 
 function renderSavedMatchupControls() {
@@ -1022,21 +1991,24 @@ function createBlankListDocument(name) {
   const now = new Date().toISOString();
   const faction = factions[0];
   const enemyFaction = factions[1] || factions[0];
-  return {
+  const document = {
     id: makeListId(),
     name: name || defaultListName,
     createdAt: now,
     updatedAt: now,
     profile: "competitive",
+    rulesEdition: state.rulesEdition,
     gameSize: 2000,
     playstyle: "midrange",
     risk: "5",
     experience: "mid",
     factionId: faction?.id,
     detachmentId: faction?.detachments?.[0]?.id,
+    detachmentLoadoutIds: faction?.detachments?.[0]?.id ? [faction.detachments[0].id] : [],
     roster: [],
     enemyFactionId: enemyFaction?.id,
     enemyDetachmentId: enemyFaction?.detachments?.[0]?.id,
+    enemyDetachmentLoadoutIds: enemyFaction?.detachments?.[0]?.id ? [enemyFaction.detachments[0].id] : [],
     enemyRoster: [],
     meta: "balanced",
     enemyStyle: "midrange",
@@ -1044,7 +2016,11 @@ function createBlankListDocument(name) {
     mission: "takeHold",
     deployment: "tippingPoint",
     layout: "ca1",
+    forceDisposition: "takeHold",
+    enemyForceDisposition: "takeHold",
+    terrainProfile: "balancedAreas",
   };
+  return applyUserProfileDefaultsToDocument(document);
 }
 
 function openSavedList(id) {
@@ -1083,11 +2059,19 @@ function applyListDocument(document) {
   const list = { ...fallback, ...(document || {}) };
   state.activeListId = list.id;
   state.profile = list.profile || "competitive";
+  state.rulesEdition = editionProfiles[list.rulesEdition] ? list.rulesEdition : state.rulesEdition || "10e";
+  try {
+    localStorage.setItem(rulesEditionKey, state.rulesEdition);
+  } catch {
+    // Session-only edition is still fine if storage is unavailable.
+  }
   state.gameSize = Number(list.gameSize || 2000);
   state.faction = findFaction(list.factionId) || factions[0];
   state.detachment = state.faction.detachments.find((detachment) => detachment.id === list.detachmentId) || state.faction.detachments[0];
   state.enemyFaction = findFaction(list.enemyFactionId) || factions[1] || factions[0];
   state.enemyDetachment = state.enemyFaction.detachments.find((detachment) => detachment.id === list.enemyDetachmentId) || state.enemyFaction.detachments[0];
+  state.detachmentLoadouts.player = Array.isArray(list.detachmentLoadoutIds) ? [...list.detachmentLoadoutIds] : [state.detachment?.id].filter(Boolean);
+  state.detachmentLoadouts.enemy = Array.isArray(list.enemyDetachmentLoadoutIds) ? [...list.enemyDetachmentLoadoutIds] : [state.enemyDetachment?.id].filter(Boolean);
   state.roster = restoreSavedRoster(list.roster || []);
   state.enemyRoster = restoreSavedRoster(list.enemyRoster || []);
   state.factionRulesExpanded = false;
@@ -1100,6 +2084,7 @@ function applyListDocument(document) {
 
   $("#activeListName").value = list.name || defaultListName;
   $("#editorTitle").textContent = list.name || defaultListName;
+  syncEditionControls();
   $("#gameSize").value = String(state.gameSize);
   $("#playstyle").value = list.playstyle || "midrange";
   $("#risk").value = list.risk || "5";
@@ -1110,6 +2095,9 @@ function applyListDocument(document) {
   $("#missionPreset").value = missionPreset;
   applyMissionPreset(missionPreset);
   if (list.layout && /^(ca[1-8]|gw|dense|open|wtc|wtcDense|wtcOpen|ftc|ftcDense|ftcOpen|flg|flgDense|flgOpen)$/.test(list.layout)) $("#layout").value = list.layout;
+  $("#forceDisposition").value = list.forceDisposition || inferForceDisposition("player");
+  $("#enemyForceDisposition").value = list.enemyForceDisposition || inferForceDisposition("enemy");
+  $("#terrainProfile").value = list.terrainProfile || "balancedAreas";
   $("#playerPaste").value = "";
   $("#enemyPaste").value = "";
   $("#playerImportStatus").textContent = "";
@@ -1177,16 +2165,20 @@ function captureListDocument() {
     name: $("#activeListName").value.trim() || defaultListName,
     createdAt: existing?.createdAt || now,
     updatedAt: now,
+    userProfileId: activeUserProfile()?.id || existing?.userProfileId || "",
     profile: state.profile,
+    rulesEdition: state.rulesEdition,
     gameSize: state.gameSize,
     playstyle: $("#playstyle").value,
     risk: $("#risk").value,
     experience: $("#experience").value,
     factionId: state.faction?.id,
     detachmentId: state.detachment?.id,
+    detachmentLoadoutIds: activeDetachments("player").map((detachment) => detachment.id),
     roster: cloneData(state.roster),
     enemyFactionId: state.enemyFaction?.id,
     enemyDetachmentId: state.enemyDetachment?.id,
+    enemyDetachmentLoadoutIds: activeDetachments("enemy").map((detachment) => detachment.id),
     enemyRoster: cloneData(state.enemyRoster),
     meta: $("#meta").value,
     enemyStyle: $("#enemyStyle").value,
@@ -1194,6 +2186,9 @@ function captureListDocument() {
     mission: $("#mission").value,
     deployment: $("#deployment").value,
     layout: $("#layout").value,
+    forceDisposition: $("#forceDisposition").value,
+    enemyForceDisposition: $("#enemyForceDisposition").value,
+    terrainProfile: $("#terrainProfile").value,
   };
 }
 
@@ -1235,7 +2230,40 @@ function escapeHtml(value) {
 function bindEvents() {
   $("#createList").addEventListener("click", createListFromLibrary);
   $("#refreshLists").addEventListener("click", renderLibrary);
+  $("#libraryEdition").addEventListener("input", (event) => setRulesEdition(event.target.value, { silent: true }));
+  $("#userProfileSelect").addEventListener("input", (event) => {
+    state.activeUserProfileId = event.target.value;
+    persistUserProfiles();
+    renderUserProfileControls();
+  });
+  $("#saveUserProfile").addEventListener("click", saveUserProfileFromControls);
+  $("#createUserProfile").addEventListener("click", createUserProfileFromControls);
+  $("#deleteUserProfile").addEventListener("click", deleteActiveUserProfile);
+  $("#startGuidedTour").addEventListener("click", () => startGuidedTour({ fromProfile: Boolean(activeUserProfile()) }));
+  $("#betaTesterMode").addEventListener("change", (event) => {
+    state.betaTesterMode = event.target.checked;
+    persistBetaTesterMode();
+    renderBetaTesterUi();
+    setUserProfileStatus(state.betaTesterMode ? "Modo beta tester activo. Aparecera el boton para mandar comentarios." : "Modo beta tester desactivado.");
+  });
+  $("#openBetaFeedback").addEventListener("click", () => openBetaFeedback());
+  $("#closeBetaFeedback").addEventListener("click", closeBetaFeedback);
+  $("#sendBetaFeedback").addEventListener("click", sendBetaFeedbackReport);
+  $("#saveBetaFeedback").addEventListener("click", saveBetaFeedback);
+  $("#copyBetaFeedback").addEventListener("click", copyBetaFeedbackReport);
+  $("#downloadBetaFeedback").addEventListener("click", downloadBetaFeedbackReport);
+  $("#downloadBetaFeedbackArchive").addEventListener("click", downloadBetaFeedbackArchive);
+  ["betaFeedbackType", "betaFeedbackSeverity", "betaFeedbackTitle", "betaFeedbackBody", "betaFeedbackSteps", "betaFeedbackExpected", "betaFeedbackContact", "betaFeedbackContext"].forEach((id) => {
+    $(`#${id}`).addEventListener("input", renderBetaFeedbackPreview);
+  });
+  ["betaFeedbackSendMethod", "betaFeedbackGoogleForm", "betaFeedbackEmail", "betaFeedbackEndpoint"].forEach((id) => {
+    $(`#${id}`).addEventListener("input", updateBetaFeedbackSettingsFromControls);
+  });
+  $("#skipGuidedTour").addEventListener("click", closeGuidedTour);
+  $("#nextGuidedTour").addEventListener("click", nextGuidedTourStep);
+  $("#rulesEdition").addEventListener("input", (event) => setRulesEdition(event.target.value));
   $("#saveList").addEventListener("click", () => saveActiveList());
+  $("#applyUserProfile").addEventListener("click", () => applyActiveUserProfileToCurrentList({ renderAfter: true }));
   $("#backToLibrary").addEventListener("click", () => {
     if (state.activeListId) saveActiveList({ silent: true });
     showLibrary();
@@ -1247,6 +2275,25 @@ function bindEvents() {
 
   document.querySelectorAll("[data-workspace-tab]").forEach((button) => {
     button.addEventListener("click", () => activateWorkspaceTab(button.dataset.workspaceTab));
+  });
+  $("#refreshDataAudit").addEventListener("click", renderDataVerifier);
+  $("#checkDataPackUpdate").addEventListener("click", () => checkDataPackUpdate({ silent: false }));
+  $("#reloadDataPack").addEventListener("click", reloadDataFromActivePack);
+  $("#clearDataPack").addEventListener("click", clearActiveDataPack);
+  ["dataPackChannel", "dataPackManifestUrl", "dataPackAutoCheck"].forEach((id) => {
+    $(`#${id}`).addEventListener("input", updateDataPackSettingsFromControls);
+  });
+  $("#dataAuditFaction").addEventListener("input", (event) => {
+    state.dataAudit.factionId = event.target.value;
+    renderDataVerifier();
+  });
+  $("#dataAuditSeverity").addEventListener("input", (event) => {
+    state.dataAudit.severity = event.target.value;
+    renderDataVerifier();
+  });
+  $("#dataAuditSearch").addEventListener("input", (event) => {
+    state.dataAudit.query = event.target.value;
+    renderDataVerifier();
   });
 
   document.querySelectorAll("[data-profile]").forEach((button) => {
@@ -1260,6 +2307,7 @@ function bindEvents() {
   $("#faction").addEventListener("change", (event) => {
     state.faction = findFaction(event.target.value);
     state.detachment = state.faction.detachments[0];
+    state.detachmentLoadouts.player = [state.detachment?.id].filter(Boolean);
     state.roster = [];
     state.factionRulesExpanded = false;
     state.detachmentRulesExpanded.player = false;
@@ -1271,6 +2319,7 @@ function bindEvents() {
   $("#enemyFaction").addEventListener("change", (event) => {
     state.enemyFaction = findFaction(event.target.value);
     state.enemyDetachment = state.enemyFaction.detachments[0];
+    state.detachmentLoadouts.enemy = [state.enemyDetachment?.id].filter(Boolean);
     state.enemyRoster = [];
     state.detachmentRulesExpanded.enemy = false;
     state.catalogSections.enemy.clear();
@@ -1280,12 +2329,14 @@ function bindEvents() {
 
   $("#detachment").addEventListener("change", (event) => {
     state.detachment = state.faction.detachments.find((detachment) => detachment.id === event.target.value);
+    state.detachmentLoadouts.player = [state.detachment?.id, ...state.detachmentLoadouts.player.filter((id) => id !== state.detachment?.id)].filter(Boolean);
     state.detachmentRulesExpanded.player = false;
     render();
   });
 
   $("#enemyDetachment").addEventListener("change", (event) => {
     state.enemyDetachment = state.enemyFaction.detachments.find((detachment) => detachment.id === event.target.value);
+    state.detachmentLoadouts.enemy = [state.enemyDetachment?.id, ...state.detachmentLoadouts.enemy.filter((id) => id !== state.enemyDetachment?.id)].filter(Boolean);
     state.detachmentRulesExpanded.enemy = false;
     render();
   });
@@ -1303,6 +2354,9 @@ function bindEvents() {
       $("#missionPreset").value = inferMissionPreset($("#mission").value, $("#deployment").value, $("#layout").value);
       render();
     });
+  });
+  ["forceDisposition", "enemyForceDisposition", "terrainProfile"].forEach((id) => {
+    $(`#${id}`).addEventListener("input", render);
   });
 
   $("#gameSize").addEventListener("input", (event) => {
@@ -1363,6 +2417,11 @@ function activateWorkspaceTab(tabName) {
   document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
     panel.classList.toggle("active", panel.dataset.tabPanel === tabName);
   });
+  if (tabName === "analysis") renderChangeRecommendations();
+  if (tabName === "data") {
+    renderDataPackPanel();
+    renderDataVerifier();
+  }
 }
 
 function openStratagems(side) {
@@ -1379,12 +2438,132 @@ function renderDetachments(side) {
   const faction = isEnemy ? state.enemyFaction : state.faction;
   select.replaceChildren();
   faction.detachments.forEach((detachment) => select.append(new Option(detachment.name, detachment.id)));
+  syncDetachmentLoadout(side);
+  renderDetachmentDpPanel(side);
+}
+
+function syncDetachmentLoadout(side) {
+  const faction = side === "enemy" ? state.enemyFaction : state.faction;
+  const primary = selectedDetachment(side);
+  const existing = state.detachmentLoadouts[side] || [];
+  const validIds = new Set((faction?.detachments || []).map((detachment) => detachment.id));
+  const cleaned = existing.filter((id) => validIds.has(id));
+  if (primary && !cleaned.includes(primary.id)) cleaned.unshift(primary.id);
+  state.detachmentLoadouts[side] = [...new Set(cleaned)];
+}
+
+function activeDetachments(side) {
+  const faction = side === "enemy" ? state.enemyFaction : state.faction;
+  const primary = selectedDetachment(side);
+  if (state.rulesEdition !== "11e") return primary ? [primary] : [];
+  syncDetachmentLoadout(side);
+  const selectedIds = state.detachmentLoadouts[side] || [];
+  const detachments = selectedIds
+    .map((id) => faction?.detachments?.find((detachment) => detachment.id === id))
+    .filter(Boolean);
+  return detachments.length ? detachments : primary ? [primary] : [];
+}
+
+function activeDetachmentStyles(side) {
+  return [...new Set(activeDetachments(side).flatMap((detachment) => detachment.styles || []))];
+}
+
+function detachmentPointBudget() {
+  return 3;
+}
+
+function detachmentPointCost(detachment) {
+  if (!detachment) return 0;
+  if (Number.isFinite(Number(detachment.dp))) return Number(detachment.dp);
+  if (Number.isFinite(Number(detachment.detachmentPoints))) return Number(detachment.detachmentPoints);
+  if (/(gladius|host of ascension|canoptek court|invasion fleet|green tide|renowned heroes)/i.test(detachment.name || "")) return 3;
+  if ((detachment.scope || "").toLowerCase() === "unit" || (detachment.tags || []).includes?.("unit-upgrade")) return 1;
+  return 2;
+}
+
+function detachmentPointTotal(side) {
+  return activeDetachments(side).reduce((sum, detachment) => sum + detachmentPointCost(detachment), 0);
+}
+
+function canToggleDetachment(side, detachment) {
+  if (!detachment) return false;
+  const selected = activeDetachments(side);
+  if (selected.some((item) => item.id === detachment.id)) return true;
+  return detachmentPointTotal(side) + detachmentPointCost(detachment) <= detachmentPointBudget();
+}
+
+function toggleDetachmentLoadout(side, detachmentId) {
+  if (state.rulesEdition !== "11e") return;
+  const faction = side === "enemy" ? state.enemyFaction : state.faction;
+  const detachment = faction?.detachments?.find((item) => item.id === detachmentId);
+  if (!detachment) return;
+  syncDetachmentLoadout(side);
+  const selected = new Set(state.detachmentLoadouts[side] || []);
+  const primary = selectedDetachment(side);
+  if (selected.has(detachmentId)) {
+    if (primary?.id === detachmentId) return;
+    selected.delete(detachmentId);
+  } else if (canToggleDetachment(side, detachment)) {
+    selected.add(detachmentId);
+  }
+  state.detachmentLoadouts[side] = [...selected];
+  render();
+}
+
+function renderDetachmentDpPanel(side) {
+  const panel = $(side === "enemy" ? "#enemyDetachmentDpPanel" : "#detachmentDpPanel");
+  if (!panel) return;
+  panel.replaceChildren();
+  panel.classList.toggle("hidden", state.rulesEdition !== "11e");
+  if (state.rulesEdition !== "11e") return;
+  syncDetachmentLoadout(side);
+  const faction = side === "enemy" ? state.enemyFaction : state.faction;
+  const primary = selectedDetachment(side);
+  const selectedIds = new Set(state.detachmentLoadouts[side] || []);
+  const total = detachmentPointTotal(side);
+  const budget = detachmentPointBudget();
+  const header = document.createElement("div");
+  header.className = "detachment-dp-header";
+  header.innerHTML = `
+    <strong>Detachments 11va</strong>
+    <span>${total}/${budget} DP</span>
+    <p>${side === "enemy" ? "Selecciona los paquetes de detachment que usa la lista rival." : "Combina detachments usando Detachment Points. El primero es tu detachment base."}</p>
+  `;
+  const list = document.createElement("div");
+  list.className = "detachment-dp-list";
+  (faction?.detachments || []).forEach((detachment) => {
+    const cost = detachmentPointCost(detachment);
+    const checked = selectedIds.has(detachment.id);
+    const disabled = !checked && total + cost > budget;
+    const row = document.createElement("label");
+    row.className = `detachment-dp-option ${checked ? "active" : ""} ${disabled ? "disabled" : ""}`;
+    row.innerHTML = `
+      <input type="checkbox" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""} />
+      <span>
+        <b>${escapeHtml(detachment.name)}</b>
+        <small>${cost} DP${primary?.id === detachment.id ? " - base" : ""}</small>
+      </span>
+    `;
+    row.querySelector("input").addEventListener("change", () => toggleDetachmentLoadout(side, detachment.id));
+    list.append(row);
+  });
+  const warning = document.createElement("p");
+  warning.className = "detachment-dp-note";
+  warning.textContent = total > budget
+    ? "Esta combinacion excede los DP disponibles."
+    : "Coste compatible: codex actuales suelen contar como 2DP; detachments 1DP/3DP se respetaran cuando vengan en data/11e.";
+  panel.append(header, list, warning);
 }
 
 function render() {
+  syncEditionControls();
+  renderBetaTesterUi();
+  renderEditionAnalysisControls();
   renderFactionRules();
   renderDetachmentRules("player");
   renderDetachmentRules("enemy");
+  renderDetachmentDpPanel("player");
+  renderDetachmentDpPanel("enemy");
   renderStratagemButtons();
   renderStratagemSection();
   renderUnitDetailPanel();
@@ -1396,11 +2575,16 @@ function render() {
   renderScores();
   renderTips();
   renderComparison();
+  if (document.querySelector('[data-tab-panel="analysis"]')?.classList.contains("active")) renderChangeRecommendations();
   renderMissionPresetSummary();
   renderMissionRecommendations();
   renderMatchListSelectors();
   renderMatchDraftSummary();
   renderMatchHistory();
+  if (document.querySelector('[data-tab-panel="data"]')?.classList.contains("active")) {
+    renderDataPackPanel();
+    renderDataVerifier();
+  }
   renderSimulation();
 }
 
@@ -1494,12 +2678,12 @@ function renderStratagemButtons() {
 function updateStratagemButton(side) {
   const button = $(side === "enemy" ? "#openEnemyStratagems" : "#openStratagems");
   if (!button) return;
-  const detachment = selectedDetachment(side);
-  const count = stratagemsForDetachment(detachment).length;
+  const detachments = activeDetachments(side);
+  const count = stratagemsForActiveDetachments(side).length;
   const active = state.stratagemView.open && state.stratagemView.side === side;
   button.textContent = side === "enemy" ? `Ver estratagemas rivales${count ? ` (${count})` : ""}` : `Ver estratagemas${count ? ` (${count})` : ""}`;
   button.classList.toggle("active", active);
-  button.title = count ? `Abrir estratagemas de ${detachment.name}` : "No hay estratagemas cargadas para este detachment";
+  button.title = count ? `Abrir estratagemas de ${detachments.map((detachment) => detachment.name).join(", ")}` : "No hay estratagemas cargadas para estos detachments";
 }
 
 function renderStratagemSection() {
@@ -1511,10 +2695,10 @@ function renderStratagemSection() {
   const side = state.stratagemView.side;
   const isEnemy = side === "enemy";
   const faction = isEnemy ? state.enemyFaction : state.faction;
-  const detachment = selectedDetachment(side);
-  const stratagems = stratagemsForDetachment(detachment);
-  $("#stratagemTitle").textContent = `Estratagemas${isEnemy ? " rivales" : ""}: ${detachment?.name || "Sin detachment"}`;
-  $("#stratagemSubtitle").textContent = `${faction?.name || "Faccion"} / ${stratagems.length || 0} estratagemas disponibles`;
+  const detachments = activeDetachments(side);
+  const stratagems = stratagemsForActiveDetachments(side);
+  $("#stratagemTitle").textContent = `Estratagemas${isEnemy ? " rivales" : ""}: ${detachments.map((detachment) => detachment.name).join(" + ") || "Sin detachment"}`;
+  $("#stratagemSubtitle").textContent = `${faction?.name || "Faccion"} / ${stratagems.length || 0} estratagemas disponibles / ${detachmentPointTotal(side)}/${detachmentPointBudget()} DP`;
 
   const list = $("#stratagemList");
   list.replaceChildren();
@@ -1541,7 +2725,7 @@ function renderStratagemSection() {
 
     const meta = document.createElement("div");
     meta.className = "stratagem-meta";
-    [stratagem.phase, stratagem.turn, stratagem.type].filter(Boolean).forEach((item) => {
+    [stratagem.detachmentName && activeDetachments(side).length > 1 ? stratagem.detachmentName : "", stratagem.phase, stratagem.turn, stratagem.type].filter(Boolean).forEach((item) => {
       const pill = document.createElement("span");
       pill.textContent = item;
       meta.append(pill);
@@ -1565,6 +2749,18 @@ function selectedDetachment(side) {
 function stratagemsForDetachment(detachment) {
   if (!detachment) return [];
   return detachmentStratagems[normalizeName(detachment.name)] || [];
+}
+
+function stratagemsForActiveDetachments(side) {
+  const seen = new Set();
+  return activeDetachments(side).flatMap((detachment) => (
+    stratagemsForDetachment(detachment).map((stratagem) => ({ ...stratagem, detachmentName: detachment.name }))
+  )).filter((stratagem) => {
+    const key = normalizeName(`${stratagem.detachmentName} ${stratagem.name}`);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function openUnitDetail(side, unitData, index = null) {
@@ -2128,8 +3324,15 @@ function addConfiguredUnit(side, unitData) {
 }
 
 function availableEnhancements(side) {
-  const detachment = side === "enemy" ? state.enemyDetachment : state.detachment;
-  return unitEnhancements[normalizeName(detachment?.name || "")] || [];
+  const seen = new Set();
+  return activeDetachments(side).flatMap((detachment) => (
+    unitEnhancements[normalizeName(detachment?.name || "")] || []
+  )).filter((enhancement) => {
+    const key = normalizeName(enhancement.name || "");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function enhancementPoints(enhancement) {
@@ -2231,7 +3434,7 @@ function optionReplacesBase(group, detail, unitData) {
 }
 
 function isSingleModelDatasheet(detail, unitData) {
-  if (isCharacterLike(unitData) || unitData.section === "Vehicle" || unitData.section === "Monster") return true;
+  if (isCharacterLike(unitData) || unitData.section === "Vehicle" || unitData.section === "Monster" || unitData.section === "Fortification") return true;
   const composition = (detail.composition || []).join(" ").toLowerCase();
   if (!composition) return false;
   if (/\b\d+\s*-\s*\d+\b/.test(composition)) return false;
@@ -2446,23 +3649,23 @@ function addRoleScorePanel(container, unitData) {
 
 function unitRoleScores(unitData) {
   const features = unitFeatures(unitData);
-  const text = unitText(unitData);
+  const weapons = unitWeaponFeatureScores(unitData);
   const score = (...values) => Math.max(0, Math.min(10, Math.round(Math.max(...values) * 10)));
-  const textScore = (needles) => needles.some((needle) => text.includes(needle)) ? 0.8 : 0;
+  const weightedScore = (...values) => Math.max(0, Math.min(10, Math.round(values.reduce((sum, value) => sum + value, 0) * 10)));
   return [
-    { label: "Dano antiinfanteria", value: score(features.shooting * 0.7, features.melee * 0.65, features.boardControl * 0.75, textScore(["flamer", "blast", "rapid fire", "torrent"])) },
-    { label: "Dano antitanque", value: score(features.antiTank, textScore(["melta", "lascannon", "railgun", "bright lance", "doomsday"])) },
-    { label: "Melee", value: score(features.melee, features.charge * 0.8) },
-    { label: "Disparo", value: score(features.shooting, (features.rangedAntiTank ?? features.antiTank) * 0.7) },
+    { label: "Dano antiinfanteria", value: weightedScore(weapons.shooting * 0.58, weapons.melee * 0.22, features.boardControl * 0.14, features.indirect * 0.08) },
+    { label: "Dano antitanque", value: weightedScore(weapons.antiTank * 0.76, features.antiTank * 0.18, features.monsterVehicle * 0.06) },
+    { label: "Melee", value: weightedScore(weapons.melee * 0.72, features.charge * 0.14, features.melee * 0.14) },
+    { label: "Disparo", value: weightedScore(weapons.shooting * 0.7, weapons.rangedAntiTank * 0.16, features.shooting * 0.14) },
     { label: "Scorer", value: score(features.scoring, features.speed * 0.65, features.deepStrike * 0.65) },
     { label: "Pantalla", value: score(features.screens, features.boardControl * 0.75, features.cheap * 0.8) },
     { label: "Ancla", value: score(features.anchor, features.durability * 0.9) },
-    { label: "Trading piece", value: score(features.trading, features.cheap * 0.7, features.pressure * 0.6) },
-    { label: "Transporte", value: score(isDedicatedTransport(unitData) ? 1 : 0, textScore(["transport"])) },
+    { label: "Trading piece", value: weightedScore(features.trading * 0.46, features.cheap * 0.2, features.pressure * 0.18, Math.max(weapons.shooting, weapons.melee, weapons.antiTank) * 0.22) },
+    { label: "Transporte", value: score(isDedicatedTransport(unitData) ? 1 : 0, features.transport * 0.8) },
     { label: "Buff piece", value: score(features.buff, features.synergy * 0.6) },
     { label: "Objective holder", value: score(features.scoring * 0.75, features.anchor * 0.75, features.durability * 0.7) },
     { label: "Deep strike", value: score(features.deepStrike) },
-    { label: "Countercharge", value: score(features.melee * 0.65, features.anchor * 0.5, textScore(["heroic", "fights first", "intervention"])) },
+    { label: "Countercharge", value: weightedScore(weapons.melee * 0.52, features.anchor * 0.18, features.charge * 0.16, features.melee * 0.14) },
   ];
 }
 
@@ -2726,7 +3929,7 @@ function renderRosterValidation(side, validation) {
     if (!validation.units.length) return;
     const ok = document.createElement("p");
     ok.className = "validation-ok";
-    ok.textContent = "Sin errores basicos de construccion detectados.";
+    ok.textContent = "Lista legal segun los controles cargados: puntos, warlord, copias, enhancements, tamanos, lideres, transportes y categorias especiales.";
     container.append(ok);
     return;
   }
@@ -2737,6 +3940,7 @@ function renderRosterValidation(side, validation) {
     item.innerHTML = `
       <strong>${issue.title}</strong>
       <p>${issue.message}${issue.location ? ` Ubicacion: ${issue.location}.` : ""}</p>
+      ${issue.hint ? `<p class="validation-hint">${issue.hint}</p>` : ""}
     `;
     container.append(item);
   });
@@ -2769,6 +3973,99 @@ function renderTips() {
   });
 }
 
+function renderChangeRecommendations() {
+  const container = $("#changeRecommendations");
+  if (!container) return;
+  container.replaceChildren();
+  if (!state.roster.length) {
+    container.append(emptyMini("Agrega o importa tu lista para ver cambios concretos: que sumar, que retirar y por que."));
+    return;
+  }
+  const items = buildChangeRecommendations();
+  if (!items.length) {
+    container.append(emptyMini("No veo cambios urgentes. La lista tiene roles principales cubiertos; revisa ajustes finos por mision y rival."));
+    return;
+  }
+  items.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = `change-recommendation-card ${item.kind || "note"}`;
+    card.innerHTML = `
+      <span>${escapeHtml(item.type)}</span>
+      <strong>${escapeHtml(item.title)}</strong>
+      <p>${escapeHtml(item.body)}</p>
+      ${item.impact ? `<em>${escapeHtml(item.impact)}</em>` : ""}
+    `;
+    container.append(card);
+  });
+}
+
+function buildChangeRecommendations() {
+  const context = autoPickContext("player", state.roster);
+  const items = [];
+  const additions = totalPoints(state.roster) < state.gameSize
+    ? bestAutoPickAdditions("player", state.roster).slice(0, 4)
+    : [];
+  const cuts = cutRecommendationCandidates(context).slice(0, 3);
+
+  additions.forEach((unitData, index) => {
+    const rosterAfter = [...state.roster, ...additions.slice(0, index + 1)];
+    const explanation = buildRecommendationExplanation(unitData, context, rosterAfter);
+    const reasons = explanation.reasons?.slice(0, 2).join(" ") || explanation.summary;
+    const usage = explanation.usage?.[0] ? ` Uso: ${explanation.usage[0]}` : "";
+    items.push({
+      kind: "add",
+      type: "Agregar",
+      title: `${unitData.name} (${unitData.points} pts)`,
+      body: `${reasons}${usage}`,
+      impact: changeImpactText(unitData, state.roster, context),
+    });
+  });
+
+  cuts.forEach((cut) => {
+    const afterCut = state.roster.filter((unitData) => unitData !== cut.unitData);
+    const gaps = missingNeedLabels(rosterStructure(afterCut), context).slice(0, 2);
+    items.push({
+      kind: "cut",
+      type: "Quitar o reducir",
+      title: `${cut.unitData.name} (${unitTotalPoints(cut.unitData)} pts)`,
+      body: `${cut.reasons.join("; ")}.`,
+      impact: `Al retirarla, usa esos puntos para ${gaps.join(" o ") || "una pieza con tarea mas clara dentro del plan"}.`,
+    });
+  });
+
+  suggestedSwapRecommendations(additions, cuts, context).forEach((item) => items.push(item));
+  return items.slice(0, 8);
+}
+
+function changeImpactText(unitData, roster, context) {
+  const before = rosterStructure(roster);
+  const after = rosterStructure([...roster, unitData]);
+  const improved = Object.entries(context.minimums || {})
+    .filter(([need, target]) => (before[need] || 0) < target && (after[need] || 0) > (before[need] || 0))
+    .map(([need]) => missingNeedLabels({ [need]: 0 }, { minimums: { [need]: 1 } })[0])
+    .filter(Boolean);
+  const roles = unitRoleScores(unitData).filter((score) => score.value >= 7).sort((a, b) => b.value - a.value).slice(0, 2).map((score) => score.label.toLowerCase());
+  if (improved.length) return `Impacto principal: cubre ${[...new Set(improved)].join(", ")}. Roles fuertes: ${roles.join(", ") || "utilidad de lista"}.`;
+  return `Impacto principal: sube ${roles.join(", ") || "coherencia"} para el plan ${archetypeDisplayName(context.playstyle)}.`;
+}
+
+function suggestedSwapRecommendations(additions, cuts, context) {
+  if (!additions.length || !cuts.length) return [];
+  const available = state.gameSize - totalPoints(state.roster);
+  return cuts.slice(0, 2).flatMap((cut) => {
+    const candidate = additions.find((unitData) => unitData.points <= unitTotalPoints(cut.unitData) + available + 5);
+    if (!candidate) return [];
+    const need = structuralNeedLabels(candidate, context).slice(0, 2).join(" y ") || "un rol mas claro";
+    return [{
+      kind: "swap",
+      type: "Cambio directo",
+      title: `${cut.unitData.name} -> ${candidate.name}`,
+      body: `Tiene sentido si necesitas liberar puntos o foco: ${cut.unitData.name} esta marcado por ${cut.reasons[0]}, mientras ${candidate.name} aporta ${need}.`,
+      impact: `No es una orden automatica: revisa puntos exactos y si pierdes una unidad clave para secundaria antes de confirmar el cambio.`,
+    }];
+  });
+}
+
 function renderComparison() {
   const container = $("#profileCompare");
   const player = armyProfile(state.roster);
@@ -2790,6 +4087,26 @@ function renderComparison() {
     `;
     container.append(row);
   });
+
+  if (state.enemyRoster.length) {
+    matchupBreakdown(player, enemy)
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+      .slice(0, 4)
+      .forEach((factor) => {
+        const row = document.createElement("div");
+        row.className = "metric-row matchup-factor";
+        row.innerHTML = `
+          <strong>${escapeHtml(factor.label)}</strong>
+          <div class="metric-bar matchup-edge">
+            <span style="--value: ${Math.max(0, 50 + factor.value * 5)}%"></span>
+            <span class="enemy" style="--value: ${Math.max(0, 50 - factor.value * 5)}%"></span>
+          </div>
+          <small>${signedDecimal(factor.value)}</small>
+          <em>${escapeHtml(factor.note)}</em>
+        `;
+        container.append(row);
+      });
+  }
 }
 
 function savePendingMatchDraft() {
@@ -2807,6 +4124,7 @@ function savePendingMatchDraft() {
   report.image = state.pendingMatchImageData || report.image || "";
   report.playerList = selectedMatchListSnapshot("player");
   report.enemyList = selectedMatchListSnapshot("enemy");
+  report.rulesEdition = state.rulesEdition;
   report.enemyStyle = inferMatchListStyle(report.enemyList) || report.enemyStyle || "";
   report.opponentFaction = report.opponentFaction || report.enemyList?.faction || "";
   report.updatedAt = new Date().toISOString();
@@ -2923,11 +4241,18 @@ function parseMatchEnemyListDraft() {
   const textarea = $("#matchEnemyListPaste");
   const text = textarea.value.trim();
   if (!text) return setMatchEnemyListStatus("Pega la lista rival para esta partida.");
-  const meta = detectRosterMeta(text, state.enemyFaction);
-  const faction = meta.faction || state.enemyFaction;
+  let meta = detectRosterMeta(text, state.enemyFaction);
+  const parsed = parseRosterTextWithFactionFallback(text, meta.faction || state.enemyFaction);
+  if (parsed.faction && (!meta.faction || parsed.faction.id !== meta.faction.id)) {
+    meta = {
+      faction: parsed.faction,
+      detachment: findDetachmentMention(text, parsed.faction) || parsed.faction.detachments[0],
+    };
+  }
+  const faction = meta.faction || parsed.faction || state.enemyFaction;
   const detachment = meta.detachment || faction?.detachments?.[0] || null;
   if (!faction) return setMatchEnemyListStatus("No pude detectar una faccion rival para esa lista.");
-  const result = { ...parseRosterText(text, faction), meta: { faction, detachment } };
+  const result = { ...parsed.result, meta: { faction, detachment } };
   const previousEnemyFaction = state.enemyFaction;
   const previousEnemyDetachment = state.enemyDetachment;
   state.enemyFaction = faction;
@@ -2939,6 +4264,8 @@ function parseMatchEnemyListDraft() {
     name: reportListNameFromText(text, "Lista rival importada"),
     faction: faction.name,
     detachment: detachment?.name || "",
+    detachmentLoadout: detachment?.name || "",
+    detachmentPoints: detachment ? detachmentPointCost(detachment) : 0,
     points: totalPoints(result.units),
     units: cloneData(result.units),
     raw: text.slice(0, 5000),
@@ -2957,7 +4284,7 @@ function reportListNameFromText(text, fallback) {
   const firstUseful = String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .find((line) => line && !/^\+{3,}|^(characters|battleline|other datasheets|dedicated transports|allied units)$/i.test(line));
+    .find((line) => line && !/^\+{3,}|^(characters|battleline|other datasheets|dedicated transports|allied units|legends)$/i.test(line));
   return firstUseful?.replace(/\(\s*\d+\s*points?\s*\)/i, "").trim().slice(0, 80) || fallback;
 }
 
@@ -3023,11 +4350,17 @@ function savedDocumentMatchSnapshot(document, slot = "player") {
   const faction = findFaction(enemySlot ? document.enemyFactionId : document.factionId);
   const detachmentId = enemySlot ? document.enemyDetachmentId : document.detachmentId;
   const detachment = faction?.detachments.find((item) => item.id === detachmentId);
+  const loadoutIds = enemySlot ? document.enemyDetachmentLoadoutIds : document.detachmentLoadoutIds;
+  const loadout = (Array.isArray(loadoutIds) ? loadoutIds : [detachmentId])
+    .map((id) => faction?.detachments.find((item) => item.id === id))
+    .filter(Boolean);
   const units = cloneData(enemySlot ? document.enemyRoster || [] : document.roster || []);
   return {
     name: `${document.name || defaultListName}${enemySlot ? " (rival)" : ""}`,
     faction: faction?.name || "",
     detachment: detachment?.name || "",
+    detachmentLoadout: loadout.map((item) => item.name).join(" + "),
+    detachmentPoints: loadout.reduce((sum, item) => sum + detachmentPointCost(item), 0),
     points: totalPoints(units),
     units,
   };
@@ -3068,6 +4401,8 @@ async function extractTextFromMatchImage(file) {
     for (const [index, variant] of variants.entries()) {
       setMatchReportStatus(`Leyendo imagen con OCR... intento ${index + 1}/${variants.length}`);
       const result = await window.Tesseract.recognize(variant.source, "eng", {
+        preserve_interword_spaces: "1",
+        tessedit_pageseg_mode: "6",
         logger: (message) => {
           if (message.status === "recognizing text" && Number.isFinite(message.progress)) {
             setMatchReportStatus(`Leyendo imagen con OCR... intento ${index + 1}/${variants.length} ${Math.round(message.progress * 100)}%`);
@@ -3075,7 +4410,8 @@ async function extractTextFromMatchImage(file) {
         },
       });
       candidates.push(result?.data?.text || "");
-      if (bestOcrCandidate(candidates).quality >= 18) break;
+      const best = bestOcrCandidate(candidates);
+      if (best.quality >= 26 && extractReportScore(best.text) && ocrSectionQuality(best.text) >= 2) break;
     }
   } catch (error) {
     if (!candidates.length) throw error;
@@ -3088,22 +4424,31 @@ async function createOcrImageVariants(file) {
   const variants = [{ name: "original", source: file }];
   variants.push({ name: "scaled", source: await preprocessOcrImage(file, "scaled") });
   variants.push({ name: "contrast", source: await preprocessOcrImage(file, "contrast") });
+  variants.push({ name: "threshold", source: await preprocessOcrImage(file, "threshold") });
+  variants.push({ name: "invert", source: await preprocessOcrImage(file, "invert") });
+  variants.push({ name: "score-top", source: await preprocessOcrImage(file, "score-top") });
+  variants.push({ name: "score-threshold", source: await preprocessOcrImage(file, "score-threshold") });
+  variants.push({ name: "left-column", source: await preprocessOcrImage(file, "left-column") });
+  variants.push({ name: "right-column", source: await preprocessOcrImage(file, "right-column") });
   return variants;
 }
 
 async function preprocessOcrImage(file, mode) {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(2.2, Math.max(1.25, 1300 / Math.max(1, bitmap.width)));
+  const crop = ocrCropForMode(bitmap, mode);
+  const scale = Math.min(2.8, Math.max(1.35, 1500 / Math.max(1, crop.sw)));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.width = Math.max(1, Math.round(crop.sw * scale));
+  canvas.height = Math.max(1, Math.round(crop.sh * scale));
   const context = canvas.getContext("2d", { willReadFrequently: true });
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  if (mode === "contrast") {
+  context.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
+  if (["contrast", "score-top", "threshold", "score-threshold", "invert", "left-column", "right-column"].includes(mode)) {
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
     for (let index = 0; index < image.data.length; index += 4) {
       const gray = image.data[index] * 0.299 + image.data[index + 1] * 0.587 + image.data[index + 2] * 0.114;
-      const boosted = gray > 150 ? Math.min(255, gray * 1.18 + 18) : Math.max(0, gray * 0.72 - 12);
+      let boosted = gray > 150 ? Math.min(255, gray * 1.2 + 18) : Math.max(0, gray * 0.7 - 14);
+      if (["threshold", "score-threshold"].includes(mode)) boosted = gray > 118 ? 255 : 0;
+      if (mode === "invert") boosted = 255 - boosted;
       image.data[index] = boosted;
       image.data[index + 1] = boosted;
       image.data[index + 2] = boosted;
@@ -3113,22 +4458,49 @@ async function preprocessOcrImage(file, mode) {
   return canvas.toDataURL("image/png");
 }
 
+function ocrCropForMode(bitmap, mode) {
+  const width = bitmap.width;
+  const height = bitmap.height;
+  if (["score-top", "score-threshold"].includes(mode)) return { sx: 0, sy: 0, sw: width, sh: Math.max(1, height * 0.34) };
+  if (mode === "left-column") return { sx: 0, sy: height * 0.12, sw: width * 0.62, sh: height * 0.8 };
+  if (mode === "right-column") return { sx: width * 0.38, sy: height * 0.12, sw: width * 0.62, sh: height * 0.8 };
+  return { sx: 0, sy: 0, sw: width, sh: height };
+}
+
 function bestOcrCandidate(candidates) {
-  return candidates
+  const ranked = candidates
     .map((text) => ({ text, quality: ocrTextQuality(text) }))
-    .sort((a, b) => b.quality - a.quality || b.text.length - a.text.length)[0] || { text: "", quality: 0 };
+    .sort((a, b) => b.quality - a.quality || b.text.length - a.text.length);
+  const best = ranked[0] || { text: "", quality: 0 };
+  const bestHasScore = Boolean(extractReportScore(best.text));
+  const scoreBest = ranked.find((candidate) => extractReportScore(candidate.text));
+  const sectionBest = ranked.find((candidate) => ocrSectionQuality(candidate.text) >= 2);
+  if ((scoreBest && !bestHasScore) || (sectionBest && sectionBest.text !== best.text)) {
+    return {
+      text: [scoreBest?.text, sectionBest?.text, best.text].filter(Boolean).join("\n"),
+      quality: best.quality + Math.min(6, (scoreBest?.quality || 0) / 3) + Math.min(3, (sectionBest?.quality || 0) / 5),
+    };
+  }
+  return best;
 }
 
 function ocrTextQuality(text = "") {
   const normalized = normalizeOcrReportText(text);
   let score = 0;
-  if (/\b\d{1,3}\s*[-\u2013]\s*\d{1,3}\b/.test(normalized)) score += 6;
+  const reportScore = extractReportScore(normalized);
+  if (reportScore) score += 6 + Math.max(0, Math.min(4, reportScore.quality / 3));
   if (detectKnownMission(normalized)) score += 4;
   if (detectKnownDeployment(normalized)) score += 3;
   score += Math.min(6, extractSecondaries(normalized).length);
-  score += Math.min(5, (normalized.match(/\b\d{1,2}\s*\/\s*(?:40|50|10)\b/g) || []).length);
+  score += Math.min(6, ocrSectionQuality(normalized) * 2);
+  score += Math.min(3, (normalized.match(/\b(?:battle ready|cp remaining|went first|went second)\b/gi) || []).length);
   score += Math.min(4, normalized.split(/\r?\n/).filter(Boolean).length / 8);
   return score;
+}
+
+function ocrSectionQuality(text = "") {
+  const normalized = normalizeOcrReportText(text);
+  return [50, 40, 10].reduce((sum, total) => sum + (extractScoreBeforeTotal(normalized, total) ? 1 : 0), 0);
 }
 
 function loadTesseract() {
@@ -3154,13 +4526,133 @@ function normalizeOcrReportText(text = "") {
   return String(text || "")
     .replace(/\r/g, "\n")
     .replace(/[|]/g, " ")
+    .replace(/[‐‑‒–—−]/g, "-")
+    .replace(/(\d)\s*[_~=:]\s*(\d)/g, "$1-$2")
+    .replace(/\b([Vv])\s*1\s*([CcTt])\s*([Oo0])\s*([Rr])\s*([Yy])\b/g, "VICTORY")
     .replace(/\bV1CTORY\b/gi, "VICTORY")
     .replace(/\bScorched\s+Earth\b/gi, "Scorched Earth")
     .replace(/\bPurge\s+The\s+Foe\b/gi, "Purge The Foe")
     .split(/\r?\n/)
-    .map((line) => line.replace(/[ \t]{2,}/g, " ").trim())
+    .map((line) => normalizeOcrScoreLine(line.replace(/[ \t]{2,}/g, " ").trim()))
     .filter(Boolean)
     .join("\n");
+}
+
+function normalizeOcrScoreLine(line = "") {
+  return String(line || "")
+    .replace(/(\d)\s*[-_~=:]\s*(\d)/g, "$1-$2")
+    .replace(/\b([0-9OoIlSBg])\s+([0-9OoIlSBg])\s*-\s*([0-9OoIlSBg])\s+([0-9OoIlSBg])\b/g, "$1$2-$3$4")
+    .replace(/\b([0-9OoIlSBg])\s+([0-9OoIlSBg])\s+[-_~=:]\s+([0-9OoIlSBg])\s+([0-9OoIlSBg])\b/g, "$1$2-$3$4");
+}
+
+function normalizeOcrReportText(text = "") {
+  return String(text || "")
+    .replace(/\r/g, "\n")
+    .replace(/[|]/g, " ")
+    .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-")
+    .replace(/(\d)\s*[-_~=:]\s*(\d)/g, "$1-$2")
+    .replace(/([0-9OoIlSBg])\s*[/\\]\s*([145SIl]\s*[0Oo])/g, "$1/$2")
+    .replace(/([0-9OoIlSBg])\s+([0-9OoIlSBg])\s*[/\\]\s*([145SIl]\s*[0Oo])/g, "$1$2/$3")
+    .replace(/\b([Vv])\s*1\s*([CcTt])\s*([Oo0])\s*([Rr])\s*([Yy])\b/g, "VICTORY")
+    .replace(/\bV1CTORY\b/gi, "VICTORY")
+    .replace(/\bDEFE4T\b/gi, "DEFEAT")
+    .replace(/\bDR4W\b/gi, "DRAW")
+    .replace(/\bScorched\s+Earth\b/gi, "Scorched Earth")
+    .replace(/\bPurge\s+The\s+Foe\b/gi, "Purge The Foe")
+    .split(/\r?\n/)
+    .map((line) => normalizeOcrScoreLine(line.replace(/[ \t]{2,}/g, " ").trim()))
+    .filter(Boolean)
+    .join("\n");
+}
+
+function normalizeOcrScoreLine(line = "") {
+  return String(line || "")
+    .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-")
+    .replace(/(\d)\s*[-_~=:]\s*(\d)/g, "$1-$2")
+    .replace(/([0-9OoIlSBg])\s*[_~=:]\s*([0-9OoIlSBg])/g, "$1-$2")
+    .replace(/([0-9OoIlSBg])\s+([0-9OoIlSBg])\s*\/\s*([145SIl]\s*[0Oo])/g, "$1$2/$3")
+    .replace(/\b([0-9OoIlSBg])\s+([0-9OoIlSBg])\s*-\s*([0-9OoIlSBg])\s+([0-9OoIlSBg])\b/g, "$1$2-$3$4")
+    .replace(/\b([0-9OoIlSBg])\s+([0-9OoIlSBg])\s+[-_~=:]\s+([0-9OoIlSBg])\s+([0-9OoIlSBg])\b/g, "$1$2-$3$4");
+}
+
+function extractReportScore(linesOrText) {
+  const lines = Array.isArray(linesOrText)
+    ? linesOrText
+    : normalizeOcrReportText(linesOrText).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const candidates = [];
+  lines.forEach((line, index) => {
+    candidates.push(...scoreCandidatesFromLine(line, index, line));
+    const joinedNext = `${line} ${lines[index + 1] || ""}`.trim();
+    if (joinedNext !== line) candidates.push(...scoreCandidatesFromLine(joinedNext, index, line));
+    const joinedPrev = `${lines[index - 1] || ""} ${line}`.trim();
+    if (joinedPrev !== line) candidates.push(...scoreCandidatesFromLine(joinedPrev, index, line));
+  });
+  return candidates
+    .filter((candidate) => Number.isFinite(candidate.playerScore) && Number.isFinite(candidate.opponentScore))
+    .filter((candidate) => candidate.playerScore >= 0 && candidate.playerScore <= 100 && candidate.opponentScore >= 0 && candidate.opponentScore <= 100)
+    .filter((candidate) => candidate.playerScore + candidate.opponentScore >= 20)
+    .sort((a, b) => b.quality - a.quality || a.index - b.index)[0] || null;
+}
+
+function scoreCandidatesFromLine(line, index, originalLine) {
+  const clean = normalizeOcrScoreLine(line);
+  if (!clean || ocrLineLooksLikeDate(clean) || /\/\s*(?:40|50|10)\b/.test(clean)) return [];
+  const candidates = [];
+  const scoreNumber = "([0-9OoIlSBg][0-9OoIlSBg\\s,.]{0,5})";
+  const separated = new RegExp(`${scoreNumber}\\s*[-_~=:]\\s*${scoreNumber}`, "g");
+  let match;
+  while ((match = separated.exec(clean))) {
+    const playerScore = parseOcrScoreNumber(match[1]);
+    const opponentScore = parseOcrScoreNumber(match[2]);
+    candidates.push(makeScoreCandidate({ playerScore, opponentScore, index, line: originalLine || line, raw: match[0] }));
+  }
+
+  if (/victory|defeat|draw/i.test(clean) || index <= 8) {
+    const compact = clean.replace(/\b([0-9OoIlSBg])\s+([0-9OoIlSBg])\b/g, "$1$2");
+    const numbers = [...compact.matchAll(/\b[0-9OoIlSBg][0-9OoIlSBg,.]{1,3}\b/g)]
+      .map((item) => ({ raw: item[0], value: parseOcrScoreNumber(item[0]) }))
+      .filter((item) => Number.isFinite(item.value) && item.value >= 0 && item.value <= 100);
+    for (let i = 0; i < numbers.length - 1; i += 1) {
+      candidates.push(makeScoreCandidate({ playerScore: numbers[i].value, opponentScore: numbers[i + 1].value, index, line: originalLine || line, raw: `${numbers[i].raw} ${numbers[i + 1].raw}` }));
+    }
+  }
+  return candidates.filter((candidate) => candidate.quality > -4);
+}
+
+function makeScoreCandidate(candidate) {
+  let quality = 0;
+  const line = String(candidate.line || "");
+  if (/victory|defeat|draw/i.test(line)) quality += 7;
+  if (candidate.index <= 8) quality += 4;
+  if (candidate.index <= 4) quality += 2;
+  if (/\b\d{1,3}\s*[-]\s*\d{1,3}\b/.test(normalizeOcrScoreLine(line))) quality += 3;
+  if (/\/\s*(?:40|50|10)\b/.test(line)) quality -= 8;
+  if (/battle ready|cp remaining|warhammer|mission deck|created with/i.test(line)) quality -= 6;
+  if (Math.max(candidate.playerScore, candidate.opponentScore) > 45) quality += 2;
+  if (Math.abs(candidate.playerScore - candidate.opponentScore) <= 50) quality += 1;
+  return { ...candidate, quality };
+}
+
+function parseOcrScoreNumber(value = "") {
+  let text = String(value || "")
+    .replace(/[Oo]/g, "0")
+    .replace(/[Il|]/g, "1")
+    .replace(/[Ss]/g, "5")
+    .replace(/[Bb]/g, "8")
+    .replace(/[gq]/g, "9")
+    .replace(/\s+/g, "")
+    .trim();
+  if (/^0[,.]$/.test(text)) return 9;
+  if (/^[0-9]0[,.]$/.test(text)) return Number(`${text[0]}9`);
+  if (/^[0-9][,.]0$/.test(text)) return Number(text[0]);
+  if (/^[0-9][,.]$/.test(text)) text = text.replace(/[,.]/g, "");
+  text = text.replace(/[^0-9]/g, "");
+  if (text.length > 3) text = text.slice(0, 3);
+  return text ? Number(text) : NaN;
+}
+
+function ocrLineLooksLikeDate(line = "") {
+  return /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|ene|abr|ago|dic)[a-z]*\.?\s+\d{1,2},?\s+\d{4}\b/i.test(line);
 }
 
 function createMatchDraftFromText(text = "") {
@@ -3172,17 +4664,17 @@ function createMatchDraftFromText(text = "") {
     .map((line) => line.trim())
     .filter(Boolean);
   const compact = lines.join("\n");
-  const scoreMatch = compact.match(/\b(\d{1,3})\s*[-\u2013]\s*(\d{1,3})\b/);
-  const scoreIndex = lines.findIndex((line) => /\b\d{1,3}\s*[-\u2013]\s*\d{1,3}\b/.test(line));
+  const score = extractReportScore(lines);
+  const scoreIndex = score?.index ?? -1;
   const scoreLine = lines[scoreIndex] || "";
   const inlineScore = scoreLine.match(/^\s*([A-Za-z\u00C0-\u00FF' .-]{2,}?)\s+(\d{1,3})\s*[-\u2013]\s*(\d{1,3})\s+([A-Za-z\u00C0-\u00FF' .-]{2,})\s*$/);
-  const playerScore = scoreMatch ? Number(scoreMatch[1]) : 0;
-  const opponentScore = scoreMatch ? Number(scoreMatch[2]) : 0;
+  const playerScore = score ? score.playerScore : 0;
+  const opponentScore = score ? score.opponentScore : 0;
   const playerName = cleanReportName(inlineScore?.[1] || lines[Math.max(0, scoreIndex - 1)] || "Jugador");
   const opponentName = cleanReportName(inlineScore?.[4] || lines[scoreIndex + 1] || "Rival");
   const playerBlock = lines.length ? reportPlayerBlock(lines, playerName, opponentName, true) : { text: compact, wentFirst: null };
   const opponentBlock = lines.length ? reportPlayerBlock(lines, playerName, opponentName, false) : { text: compact, wentFirst: null };
-  const result = scoreMatch ? playerScore > opponentScore ? "win" : playerScore < opponentScore ? "loss" : "draw" : "unknown";
+  const result = score ? playerScore > opponentScore ? "win" : playerScore < opponentScore ? "loss" : "draw" : "unknown";
   return {
     id: makeListId(),
     createdAt: new Date().toISOString(),
@@ -3195,7 +4687,8 @@ function createMatchDraftFromText(text = "") {
     opponentDetachment: detectReportDetachment(opponentBlock.text),
     playerScore,
     opponentScore,
-    scoreKnown: Boolean(scoreMatch),
+    scoreKnown: Boolean(score),
+    rulesEdition: state.rulesEdition,
     result,
     playerWentFirst: playerBlock.wentFirst,
     opponentWentFirst: opponentBlock.wentFirst,
@@ -3259,9 +4752,15 @@ function deleteMatchHistoryEntry(id) {
     state.pendingMatchDraft = null;
     state.pendingMatchImageData = null;
   }
+  if (state.reviewingMatchId === id) state.reviewingMatchId = null;
   persistMatchHistory();
   setMatchReportStatus("Partida retirada del historial.");
   render();
+}
+
+function toggleMatchHistoryReview(id) {
+  state.reviewingMatchId = state.reviewingMatchId === id ? null : id;
+  renderMatchHistoryList();
 }
 
 function loadMatchHistoryLists(id) {
@@ -3394,6 +4893,11 @@ function renderMatchHistoryList() {
     side.className = "history-entry-actions";
     const result = document.createElement("span");
     result.textContent = report.result === "win" ? "Victoria" : report.result === "loss" ? "Derrota" : report.result === "draw" ? "Empate" : "Parcial";
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "ghost";
+    review.textContent = state.reviewingMatchId === report.id ? "Ocultar" : "Revisar";
+    review.addEventListener("click", () => toggleMatchHistoryReview(report.id));
     const edit = document.createElement("button");
     edit.type = "button";
     edit.className = "ghost";
@@ -3409,10 +4913,519 @@ function renderMatchHistoryList() {
     remove.className = "ghost";
     remove.textContent = "Retirar";
     remove.addEventListener("click", () => deleteMatchHistoryEntry(report.id));
-    side.append(result, edit, load, remove);
+    side.append(result, review, edit, load, remove);
     item.append(side);
+    if (state.reviewingMatchId === report.id) {
+      item.append(renderMatchReviewFeedback(report));
+    }
     container.append(item);
   });
+}
+
+function renderMatchReviewFeedback(report) {
+  const panel = document.createElement("div");
+  panel.className = "history-entry-review";
+  const items = matchReviewFeedbackItems(report);
+  panel.innerHTML = `
+    <div class="history-review-title">
+      <strong>Feedback de la partida</strong>
+      <span>${escapeHtml(matchReviewContextLine(report))}</span>
+    </div>
+    <div class="history-review-grid">
+      ${items.map((item) => `
+        <article class="history-review-card ${escapeHtml(item.tone || "neutral")}">
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.body)}</p>
+        </article>
+      `).join("")}
+    </div>
+  `;
+  return panel;
+}
+
+function renderDataPackPanel() {
+  const channel = $("#dataPackChannel");
+  const manifest = $("#dataPackManifestUrl");
+  const autoCheck = $("#dataPackAutoCheck");
+  const summary = $("#dataPackSummary");
+  const status = $("#dataPackStatus");
+  if (!channel || !manifest || !autoCheck || !summary || !status) return;
+  channel.value = state.dataPackSettings.channel || "11e-beta";
+  manifest.value = state.dataPackSettings.manifestUrl || "";
+  autoCheck.checked = Boolean(state.dataPackSettings.autoCheck);
+  status.textContent = state.dataPackStatus || "";
+
+  const active = state.dataPackSettings.activePacks?.[state.rulesEdition];
+  const installed = Object.entries(state.dataPackSettings.activePacks || {})
+    .filter(([edition]) => edition !== state.rulesEdition)
+    .map(([edition, pack]) => `${editionProfiles[edition]?.label || edition}: ${pack.version} (${pack.channel})`);
+  const activeText = active
+    ? `${editionProfiles[state.rulesEdition]?.label || state.rulesEdition}: ${active.version} (${active.channel}) instalado ${formatSavedDate(active.installedAt)}`
+    : `${editionProfiles[state.rulesEdition]?.label || state.rulesEdition}: usando datos incluidos en la app`;
+  summary.innerHTML = `
+    <article><strong>${escapeHtml(activeText)}</strong><span>${escapeHtml(state.dataPackSettings.lastCheckedAt ? `Ultima revision: ${formatSavedDate(state.dataPackSettings.lastCheckedAt)}` : "Sin revision remota todavia")}</span></article>
+    ${installed.length ? `<article><strong>Otros paquetes instalados</strong><span>${escapeHtml(installed.join(" | "))}</span></article>` : ""}
+    <article><strong>Formato manifest</strong><span>${escapeHtml(`Debe incluir ${dataPackFiles.join(", ")}`)}</span></article>
+  `;
+}
+
+function updateDataPackSettingsFromControls() {
+  state.dataPackSettings = {
+    ...state.dataPackSettings,
+    channel: $("#dataPackChannel")?.value || "11e-beta",
+    manifestUrl: $("#dataPackManifestUrl")?.value.trim() || "",
+    autoCheck: Boolean($("#dataPackAutoCheck")?.checked),
+  };
+  persistDataPackSettings();
+  renderDataPackPanel();
+}
+
+async function checkDataPackUpdate(options = {}) {
+  updateDataPackSettingsFromControls();
+  const manifestUrl = state.dataPackSettings.manifestUrl;
+  if (!manifestUrl || !/^https?:\/\//i.test(manifestUrl)) {
+    if (!options.silent) {
+      state.dataPackStatus = "Agrega una URL de manifest remota que empiece con http o https.";
+      renderDataPackPanel();
+    }
+    return;
+  }
+  state.dataPackStatus = options.silent ? "" : "Buscando actualizaciones de datos...";
+  renderDataPackPanel();
+  try {
+    const manifest = await fetchDataPackManifest(manifestUrl);
+    const pack = resolveDataPackFromManifest(manifest, state.dataPackSettings.channel, state.rulesEdition);
+    if (!pack) throw new Error(`No encontre paquete para ${state.rulesEdition} / ${state.dataPackSettings.channel}.`);
+    const current = state.dataPackSettings.activePacks?.[pack.edition];
+    if (current?.version === pack.version) {
+      state.dataPackSettings.lastCheckedAt = new Date().toISOString();
+      persistDataPackSettings();
+      state.dataPackStatus = options.silent ? "" : `Ya tienes instalada la version ${pack.version}.`;
+      renderDataPackPanel();
+      return;
+    }
+    await installDataPack(pack, manifestUrl);
+    state.dataPackStatus = `Data pack ${pack.version} instalado. Recargando datos...`;
+    renderDataPackPanel();
+    if (pack.edition === state.rulesEdition) await reloadDataFromActivePack();
+    else renderDataPackPanel();
+  } catch (error) {
+    state.dataPackStatus = `No se pudo actualizar: ${error.message}`;
+    renderDataPackPanel();
+  }
+}
+
+async function fetchDataPackManifest(manifestUrl) {
+  const response = await fetch(manifestUrl, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
+  return response.json();
+}
+
+function resolveDataPackFromManifest(manifest, channel, currentEdition) {
+  const packs = normalizeDataPackManifest(manifest);
+  return packs.find((pack) => pack.channel === channel)
+    || packs.find((pack) => pack.edition === currentEdition)
+    || null;
+}
+
+function normalizeDataPackManifest(manifest) {
+  const candidates = [];
+  if (Array.isArray(manifest?.packs)) candidates.push(...manifest.packs);
+  if (manifest?.channels && typeof manifest.channels === "object") {
+    Object.entries(manifest.channels).forEach(([channel, pack]) => candidates.push({ ...pack, channel: pack.channel || channel }));
+  }
+  if (manifest?.files) candidates.push(manifest);
+  return candidates.map((pack) => {
+    const channel = pack.channel || inferDataPackChannel(pack.edition);
+    return {
+      edition: pack.edition || inferEditionFromChannel(channel),
+      channel,
+      version: String(pack.version || pack.updatedAt || pack.date || "sin-version"),
+      files: normalizeDataPackFiles(pack.files || {}),
+      notes: pack.notes || "",
+    };
+  }).filter((pack) => pack.edition && pack.channel && dataPackFiles.every((fileName) => pack.files[fileName]));
+}
+
+function normalizeDataPackFiles(files) {
+  return Object.fromEntries(Object.entries(files).map(([fileName, value]) => [
+    fileName,
+    typeof value === "string" ? value : value?.url || value?.href || "",
+  ]));
+}
+
+function inferEditionFromChannel(channel = "") {
+  return String(channel).startsWith("11e") ? "11e" : "10e";
+}
+
+function inferDataPackChannel(edition = "10e") {
+  return edition === "11e" ? "11e-beta" : "10e-stable";
+}
+
+async function installDataPack(pack, manifestUrl) {
+  const installedAt = new Date().toISOString();
+  for (const fileName of dataPackFiles) {
+    const sourceUrl = new URL(pack.files[fileName], manifestUrl).toString();
+    state.dataPackStatus = `Descargando ${fileName}...`;
+    renderDataPackPanel();
+    const response = await fetch(sourceUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`${fileName} HTTP ${response.status}`);
+    const body = await response.text();
+    JSON.parse(body);
+    await writeDataPackRecord(pack.edition, fileName, body, {
+      version: pack.version,
+      channel: pack.channel,
+      sourceUrl,
+      installedAt,
+    });
+  }
+  state.dataPackSettings.activePacks = {
+    ...(state.dataPackSettings.activePacks || {}),
+    [pack.edition]: {
+      version: pack.version,
+      channel: pack.channel,
+      installedAt,
+      manifestUrl,
+      notes: pack.notes || "",
+    },
+  };
+  state.dataPackSettings.lastCheckedAt = installedAt;
+  persistDataPackSettings();
+}
+
+async function reloadDataFromActivePack() {
+  const previous = {
+    factionId: state.faction?.id,
+    enemyFactionId: state.enemyFaction?.id,
+    detachmentId: state.detachment?.id,
+    enemyDetachmentId: state.enemyDetachment?.id,
+  };
+  try {
+    await loadGameData();
+    state.faction = findFaction(previous.factionId) || factions[0];
+    state.enemyFaction = findFaction(previous.enemyFactionId) || factions[1] || factions[0];
+    state.detachment = state.faction?.detachments?.find((detachment) => detachment.id === previous.detachmentId) || state.faction?.detachments?.[0];
+    state.enemyDetachment = state.enemyFaction?.detachments?.find((detachment) => detachment.id === previous.enemyDetachmentId) || state.enemyFaction?.detachments?.[0];
+    populateFactionSelects();
+    populateUserProfileFactionSelect();
+    renderDetachments("player");
+    renderDetachments("enemy");
+    state.dataPackStatus = "Datos recargados correctamente.";
+    render();
+  } catch (error) {
+    state.dataPackStatus = `No se pudieron recargar los datos: ${error.message}`;
+    renderDataPackPanel();
+  }
+}
+
+async function clearActiveDataPack() {
+  const edition = state.rulesEdition;
+  try {
+    await deleteDataPackRecords(edition);
+    const activePacks = { ...(state.dataPackSettings.activePacks || {}) };
+    delete activePacks[edition];
+    state.dataPackSettings.activePacks = activePacks;
+    persistDataPackSettings();
+    state.dataPackStatus = "Paquete remoto eliminado. Volviendo a datos incluidos...";
+    renderDataPackPanel();
+    await reloadDataFromActivePack();
+  } catch (error) {
+    state.dataPackStatus = `No se pudo limpiar el paquete: ${error.message}`;
+    renderDataPackPanel();
+  }
+}
+
+function renderDataVerifier() {
+  const factionSelect = $("#dataAuditFaction");
+  const severitySelect = $("#dataAuditSeverity");
+  const searchInput = $("#dataAuditSearch");
+  const summary = $("#dataAuditSummary");
+  const list = $("#dataAuditList");
+  if (!factionSelect || !severitySelect || !searchInput || !summary || !list) return;
+
+  syncDataAuditControls(factionSelect, severitySelect, searchInput);
+  const report = buildDataAuditReport();
+  const filtered = filterDataAuditIssues(report.issues);
+  renderDataAuditSummary(summary, report, filtered.length);
+  renderDataAuditList(list, filtered);
+}
+
+function syncDataAuditControls(factionSelect, severitySelect, searchInput) {
+  const currentFaction = state.dataAudit.factionId || "all";
+  const options = [
+    new Option("Todas las facciones", "all"),
+    ...factions.map((faction) => new Option(faction.name, faction.id)),
+  ];
+  const signature = options.map((option) => `${option.value}:${option.text}`).join("|");
+  if (factionSelect.dataset.signature !== signature) {
+    factionSelect.replaceChildren(...options);
+    factionSelect.dataset.signature = signature;
+  }
+  if (![...factionSelect.options].some((option) => option.value === currentFaction)) {
+    state.dataAudit.factionId = "all";
+  }
+  factionSelect.value = state.dataAudit.factionId;
+  severitySelect.value = state.dataAudit.severity || "all";
+  if (searchInput.value !== (state.dataAudit.query || "")) searchInput.value = state.dataAudit.query || "";
+}
+
+function buildDataAuditReport() {
+  const issues = [];
+  let unitCount = 0;
+  const duplicateMap = new Map();
+  factions.forEach((faction) => {
+    (faction.units || []).forEach((unitData) => {
+      unitCount += 1;
+      const key = `${faction.id}:${normalizeName(unitData.name)}`;
+      duplicateMap.set(key, [...(duplicateMap.get(key) || []), unitData]);
+      issues.push(...dataAuditIssuesForUnit(faction, unitData));
+    });
+  });
+
+  duplicateMap.forEach((units, key) => {
+    if (units.length <= 1) return;
+    const faction = factions.find((item) => item.id === key.split(":")[0]);
+    issues.push({
+      severity: "warn",
+      faction: faction?.name || key.split(":")[0],
+      unit: units[0].name,
+      section: units[0].section || "Other",
+      title: "Unidad duplicada",
+      message: `Hay ${units.length} entradas con el mismo nombre normalizado en esta faccion.`,
+      hint: "Puede ser correcto si son variantes reales, pero conviene revisar si el importador duplico datasheets.",
+    });
+  });
+
+  return {
+    edition: currentEditionProfile().label,
+    factionCount: factions.length,
+    unitCount,
+    issues: issues.sort((a, b) => dataAuditSeverityRank(a.severity) - dataAuditSeverityRank(b.severity) || a.faction.localeCompare(b.faction) || a.unit.localeCompare(b.unit)),
+  };
+}
+
+function dataAuditIssuesForUnit(faction, unitData) {
+  const issues = [];
+  const detail = detailByUnitName(unitData.name, faction.id);
+  const section = unitData.section || "";
+  const normalizedSection = dataAuditCanonicalSection(section);
+  const pointValues = [Number(unitData.points || 0), ...Object.values(unitData.pointCosts || {}).map(Number)].filter((value) => Number.isFinite(value));
+  const positivePoints = pointValues.filter((value) => value > 0);
+  const keywords = new Set((detail?.keywords || []).map((keyword) => normalizeName(keyword)));
+  const add = (severity, title, message, hint = "") => {
+    issues.push({
+      severity,
+      faction: faction.name,
+      factionId: faction.id,
+      unit: unitData.name || "Unidad sin nombre",
+      section: section || "Other",
+      title,
+      message,
+      hint,
+    });
+  };
+
+  if (!unitData.name) add("error", "Nombre faltante", "La entrada no tiene nombre de unidad.", "Debe corregirse en data/factions.json o en el importador.");
+  if (!positivePoints.length) add("error", "Sin puntos", "La unidad no tiene coste de puntos positivo ni tabla de pointCosts util.", "Esta unidad puede romper importacion, autopick y conteo de lista.");
+  if (!section) add("error", "Sin categoria", "La unidad no tiene section asignada.", "Debe caer en una seccion canonica o en Allied Units/Legends.");
+  else if (!normalizedSection) add("error", "Categoria no reconocida", `La categoria '${section}' no forma parte del orden canonico.`, "Revisar normalizacion de BSData o corregir section.");
+  else if (normalizedSection === "Other") add("warn", "Categoria generica", "La unidad sigue clasificada como Other.", "No siempre es ilegal, pero reduce calidad de busqueda, filtros y recomendaciones.");
+
+  if (!detail) {
+    add("incomplete", "Sin datasheet enlazado", "No encontre detalle de datasheet para esta unidad en unit-details.json.", "La unidad aparecera con fallback y puede perder armas, reglas y keywords.");
+    return issues;
+  }
+
+  if (!detail.models?.length) add("incomplete", "Sin perfil de modelo", "No hay tabla M/T/SV/W/LD/OC enlazada.", "Afecta cartas PDF, comparacion y revision visual de datasheet.");
+  if (!detail.keywords?.length) add("incomplete", "Sin keywords", "No hay keywords enlazadas para esta unidad.", "Afecta lideres, reglas, categorias y scoring tactico.");
+  if (!detail.abilities?.length && !detail.loadout && !detail.wargear?.length) {
+    add("incomplete", "Datasheet muy vacio", "No hay habilidades, loadout ni armas registradas.", "Probablemente el detalle no se extrajo completo.");
+  }
+  if (!hasMeaningfulWargear(detail)) add("incomplete", "Sin armas/loadout", "No hay armas o loadout base util.", "Afecta scores de disparo, melee, cartas PDF e importacion de equipo.");
+
+  const incompleteWeapons = (detail.wargear || []).filter((weapon) => dataAuditWeaponIncomplete(weapon));
+  if (incompleteWeapons.length) {
+    add("warn", "Armas incompletas", `${incompleteWeapons.length} arma(s) tienen nombre o perfil incompleto: ${incompleteWeapons.slice(0, 3).map((weapon) => weapon.name || "sin nombre").join(", ")}.`, "Revisar extraccion de perfiles de armas.");
+  }
+
+  dataAuditSectionMismatch(unitData, normalizedSection, keywords, detail.role || "").forEach((issue) => add(issue.severity, issue.title, issue.message, issue.hint));
+  dataAuditScoreIssues(unitData).forEach((issue) => add(issue.severity, issue.title, issue.message, issue.hint));
+  dataAuditPointTierIssues(unitData, detail, positivePoints).forEach((issue) => add(issue.severity, issue.title, issue.message, issue.hint));
+  return issues;
+}
+
+function dataAuditCanonicalSection(section = "") {
+  const normalized = normalizeName(section);
+  if (normalized === "epic hero" || normalized === "epic heroes") return "Epic Hero";
+  if (normalized === "character" || normalized === "characters") return "Character";
+  if (normalized === "battleline") return "Battleline";
+  if (normalized === "dedicated transport" || normalized === "dedicated transports") return "Dedicated Transport";
+  if (normalized === "fortification" || normalized === "fortifications") return "Fortification";
+  if (normalized === "infantry") return "Infantry";
+  if (normalized === "mounted") return "Mounted";
+  if (normalized === "monster" || normalized === "monsters") return "Monster";
+  if (normalized === "vehicle" || normalized === "vehicles") return "Vehicle";
+  if (normalized === "allied unit" || normalized === "allied units" || normalized === "allies") return "Allied Units";
+  if (normalized === "legend" || normalized === "legends") return "Legends";
+  if (normalized === "other" || normalized === "other datasheets") return "Other";
+  return sectionOrder.includes(section) ? section : "";
+}
+
+function hasMeaningfulWargear(detail) {
+  if ((detail.wargear || []).some((weapon) => weapon.name && !/^(-|none|nothing)$/i.test(weapon.name))) return true;
+  return baseLoadoutEntries(detail.loadout || "").length > 0;
+}
+
+function dataAuditWeaponIncomplete(weapon = {}) {
+  if (!weapon.name || normalizeName(weapon.name).length < 3) return true;
+  const profileValues = [weapon.range, weapon.A, weapon.BS, weapon.WS, weapon.S, weapon.AP, weapon.D].filter((value) => String(value || "").trim() && String(value || "").trim() !== "-");
+  return profileValues.length < 3;
+}
+
+function dataAuditSectionMismatch(unitData, section, keywords, role = "") {
+  if (["Allied Units", "Legends"].includes(section)) return [];
+  const issues = [];
+  const roleText = normalizeName(role);
+  const hasKeyword = (keyword) => keywords.has(keyword) || roleText.includes(keyword);
+  const push = (title, message, hint = "Revisar keywords, role de Wahapedia/BSData y section en factions.json.") => issues.push({ severity: "warn", title, message, hint });
+  if (hasKeyword("fortification") && section !== "Fortification") push("Fortification mal clasificada", "La datasheet tiene keyword/rol de fortification pero no esta en Fortification.");
+  if (hasKeyword("vehicle") && !["Vehicle", "Dedicated Transport"].includes(section)) push("Vehicle mal clasificado", "La datasheet parece Vehicle pero esta en otra categoria.");
+  if (hasKeyword("monster") && section !== "Monster") push("Monster mal clasificado", "La datasheet parece Monster pero esta en otra categoria.");
+  if (hasKeyword("character") && !["Character", "Epic Hero"].includes(section)) push("Character mal clasificado", "La datasheet parece Character pero no esta como Character/Epic Hero.");
+  if (hasKeyword("battleline") && section !== "Battleline") push("Battleline mal clasificada", "La datasheet parece Battleline pero no esta en Battleline.");
+  if (section === "Vehicle" && hasKeyword("infantry") && !hasKeyword("vehicle")) push("Vehicle sospechoso", "La unidad esta como Vehicle, pero sus keywords parecen Infantry.");
+  if (section === "Monster" && hasKeyword("infantry") && !hasKeyword("monster")) push("Monster sospechoso", "La unidad esta como Monster, pero sus keywords parecen Infantry.");
+  return issues;
+}
+
+function dataAuditScoreIssues(unitData) {
+  const scores = unitRoleScores(unitData);
+  const highScores = scores.filter((score) => score.value >= 8);
+  const issues = [];
+  if (highScores.length >= 7) {
+    issues.push({
+      severity: "warn",
+      title: "Scores demasiado planos",
+      message: `La unidad tiene ${highScores.length} roles en 8+ (${highScores.slice(0, 5).map((score) => score.label).join(", ")}).`,
+      hint: "Suele indicar tags demasiado generosos o armas mal interpretadas; puede sesgar autopick.",
+    });
+  }
+  const scoreMap = new Map(scores.map((score) => [score.label, score.value]));
+  const text = normalizeName(`${unitData.name} ${unitData.section || ""} ${(unitData.tags || []).join(" ")}`);
+  if (/(scout|cultist|gretchin|guardsmen|termagant|hormagaunt|neurogaunt|kabalite|wych)/.test(text)) {
+    const spike = ["Dano antitanque", "Melee", "Disparo", "Ancla"].filter((label) => Number(scoreMap.get(label) || 0) >= 8);
+    if (spike.length >= 2) {
+      issues.push({
+        severity: "warn",
+        title: "Unidad ligera con scores altos",
+        message: `Unidad barata/ligera con roles altos en ${spike.join(", ")}.`,
+        hint: "Revisar tags inferidos y perfiles de arma para evitar recomendaciones repetidas sin plan.",
+      });
+    }
+  }
+  return issues;
+}
+
+function dataAuditPointTierIssues(unitData, detail, positivePoints) {
+  const issues = [];
+  const range = compositionModelRange(detail);
+  const pointCosts = unitData.pointCosts || {};
+  const costValues = Object.values(pointCosts).map(Number).filter((value) => Number.isFinite(value) && value > 0);
+  if (range.max > range.min && !costValues.length && !Number(unitData.points || 0)) {
+    issues.push({
+      severity: "error",
+      title: "Tamanos sin coste",
+      message: `La composicion permite ${range.min}-${range.max} modelos, pero no hay coste base ni pointCosts.`,
+      hint: "Esto rompe conteo por tamano de unidad.",
+    });
+  }
+  if (range.max > range.min && costValues.length && !pointCosts[String(range.min)]) {
+    issues.push({
+      severity: "warn",
+      title: "Falta coste minimo",
+      message: `Hay pointCosts, pero no encontre coste para el tamano minimo (${range.min}).`,
+      hint: "Puede causar errores al importar unidades por puntos.",
+    });
+  }
+  if (positivePoints.some((value) => value % 5 !== 0)) {
+    issues.push({
+      severity: "warn",
+      title: "Coste poco comun",
+      message: `Hay costes que no son multiplos de 5: ${positivePoints.filter((value) => value % 5 !== 0).join(", ")}.`,
+      hint: "No siempre es error, pero conviene revisar cambios manuales.",
+    });
+  }
+  return issues;
+}
+
+function dataAuditSeverityRank(severity) {
+  return { error: 0, warn: 1, incomplete: 2 }[severity] ?? 3;
+}
+
+function filterDataAuditIssues(issues) {
+  const factionId = state.dataAudit.factionId || "all";
+  const severity = state.dataAudit.severity || "all";
+  const query = normalizeSearch(state.dataAudit.query || "");
+  return issues.filter((issue) => {
+    if (factionId !== "all" && issue.factionId !== factionId) return false;
+    if (severity !== "all" && issue.severity !== severity) return false;
+    if (query) {
+      const haystack = normalizeSearch(`${issue.faction} ${issue.unit} ${issue.section} ${issue.title} ${issue.message} ${issue.hint}`);
+      if (!query.split(" ").every((part) => haystack.includes(part))) return false;
+    }
+    return true;
+  });
+}
+
+function renderDataAuditSummary(container, report, filteredCount) {
+  const counts = {
+    error: report.issues.filter((issue) => issue.severity === "error").length,
+    warn: report.issues.filter((issue) => issue.severity === "warn").length,
+    incomplete: report.issues.filter((issue) => issue.severity === "incomplete").length,
+  };
+  container.innerHTML = `
+    <article><strong>${escapeHtml(report.edition)}</strong><span>Dataset activo</span></article>
+    <article><strong>${report.factionCount}</strong><span>Facciones</span></article>
+    <article><strong>${report.unitCount}</strong><span>Unidades revisadas</span></article>
+    <article class="error"><strong>${counts.error}</strong><span>Errores</span></article>
+    <article class="warn"><strong>${counts.warn}</strong><span>Advertencias</span></article>
+    <article class="incomplete"><strong>${counts.incomplete}</strong><span>Datos incompletos</span></article>
+    <article><strong>${filteredCount}</strong><span>Mostrados con filtros</span></article>
+  `;
+}
+
+function renderDataAuditList(container, issues) {
+  container.replaceChildren();
+  if (!issues.length) {
+    container.append(emptyMini("No hay hallazgos con los filtros actuales."));
+    return;
+  }
+  const limit = 160;
+  issues.slice(0, limit).forEach((issue) => {
+    const item = document.createElement("article");
+    item.className = `data-audit-item ${issue.severity}`;
+    item.innerHTML = `
+      <div>
+        <span class="data-audit-severity">${escapeHtml(dataAuditSeverityLabel(issue.severity))}</span>
+        <strong>${escapeHtml(issue.title)}</strong>
+        <p>${escapeHtml(issue.message)}</p>
+        ${issue.hint ? `<p class="mini">${escapeHtml(issue.hint)}</p>` : ""}
+      </div>
+      <aside>
+        <b>${escapeHtml(issue.unit)}</b>
+        <span>${escapeHtml(issue.faction)}</span>
+        <em>${escapeHtml(issue.section || "Other")}</em>
+      </aside>
+    `;
+    container.append(item);
+  });
+  if (issues.length > limit) {
+    container.append(emptyMini(`Mostrando ${limit} de ${issues.length} hallazgos. Usa filtros para acotar la revision.`));
+  }
+}
+
+function dataAuditSeverityLabel(severity) {
+  return severity === "error" ? "Error" : severity === "warn" ? "Advertencia" : "Dato incompleto";
 }
 
 function matchHistoryStats() {
@@ -3440,6 +5453,171 @@ function matchHistoryStats() {
     averageSecondary: secondaryValues.length ? Math.round(secondaryValues.reduce((sum, value) => sum + value, 0) / secondaryValues.length) : 0,
     bestTurn: bestHistoryTurn(),
   };
+}
+
+function matchReviewContextLine(report) {
+  const parts = [
+    report.date || "",
+    editionProfiles[report.rulesEdition || "10e"]?.label || "",
+    report.mission ? missionDisplayName(report.mission) : "",
+    report.deployment ? deploymentDisplayName(report.deployment) : "",
+    report.playerList?.faction && report.enemyList?.faction ? `${report.playerList.faction} vs ${report.enemyList.faction}` : "",
+  ].filter(Boolean);
+  return parts.join(" - ") || "Partida guardada en memoria";
+}
+
+function matchReviewFeedbackItems(report) {
+  const items = [];
+  if (report.scoreKnown === false || report.result === "unknown") {
+    items.push({
+      title: "Lectura parcial",
+      body: "El marcador no quedo confiable. Guarde lo que pude detectar, pero este reporte pesa menos para memoria, autopick y probabilidad hasta que el OCR lea marcador y secciones.",
+      tone: "warn",
+    });
+  } else {
+    items.push(matchReviewScoreCard(report));
+  }
+  items.push(matchReviewPrimarySecondaryCard(report));
+  items.push(matchReviewTurnCard(report));
+  items.push(matchReviewSecondariesCard(report));
+  items.push(matchReviewMissionCard(report));
+  items.push(matchReviewListCard(report));
+  items.push(matchReviewNextStepCard(report));
+  return items.filter(Boolean);
+}
+
+function matchReviewScoreCard(report) {
+  const diff = Number(report.playerScore || 0) - Number(report.opponentScore || 0);
+  const resultText = report.result === "win" ? "ganaste" : report.result === "loss" ? "perdiste" : "empataste";
+  return {
+    title: `Marcador ${signedNumber(diff)}`,
+    body: `La partida termino ${Number(report.playerScore || 0)}-${Number(report.opponentScore || 0)}: ${resultText}. ${matchReviewScoreInterpretation(report, diff)}`,
+    tone: diff > 0 ? "good" : diff < 0 ? "bad" : "neutral",
+  };
+}
+
+function matchReviewScoreInterpretation(report, diff) {
+  const primaryDelta = Number(report.playerPrimary || 0) - Number(report.opponentPrimary || 0);
+  const secondaryDelta = Number(report.playerSecondary || 0) - Number(report.opponentSecondary || 0);
+  if (Math.abs(diff) <= 5) return "Fue una partida de margen fino: una decision de secundaria, OC o ultimo turno probablemente movia el resultado.";
+  if (diff > 0 && secondaryDelta >= primaryDelta) return "La ventaja vino sobre todo por secundarias y ejecucion de plan, asi que vale la pena repetir esos patrones.";
+  if (diff > 0) return "La ventaja vino por primaria/control de mesa; protege ese plan en matchups parecidos.";
+  if (primaryDelta < secondaryDelta) return "La caida principal estuvo en primaria/control. En una revancha, prioriza negar puntos antes que buscar bajas.";
+  return "La caida principal estuvo en secundarias o conversion de acciones. Revisa si elegiste objetivos que tu lista podia completar de forma repetible.";
+}
+
+function matchReviewPrimarySecondaryCard(report) {
+  const primaryDelta = Number(report.playerPrimary || 0) - Number(report.opponentPrimary || 0);
+  const secondaryDelta = Number(report.playerSecondary || 0) - Number(report.opponentSecondary || 0);
+  const battleReadyDelta = Number(report.playerBattleReady || 0) - Number(report.opponentBattleReady || 0);
+  const lead = Math.abs(primaryDelta) >= Math.abs(secondaryDelta) ? "primaria" : "secundarias";
+  return {
+    title: "Primaria vs secundarias",
+    body: `Primaria ${signedNumber(primaryDelta)} (${report.playerPrimary || 0}-${report.opponentPrimary || 0}), secundarias ${signedNumber(secondaryDelta)} (${report.playerSecondary || 0}-${report.opponentSecondary || 0}), battle ready ${signedNumber(battleReadyDelta)}. El eje de la partida fue ${lead}.`,
+    tone: primaryDelta + secondaryDelta >= 0 ? "good" : "bad",
+  };
+}
+
+function matchReviewTurnCard(report) {
+  const playerTurns = combinedTurnScores(report);
+  const enemyTurns = combinedOpponentTurnScores(report);
+  const deltas = playerTurns.map((value, index) => Number(value || 0) - Number(enemyTurns[index] || 0));
+  const bestIndex = deltas.reduce((winner, value, index) => value > deltas[winner] ? index : winner, 0);
+  const worstIndex = deltas.reduce((loser, value, index) => value < deltas[loser] ? index : loser, 0);
+  return {
+    title: "Lectura por turnos",
+    body: `Tu mejor ventana fue T${bestIndex + 1} (${signedNumber(deltas[bestIndex])}) y el turno mas caro fue T${worstIndex + 1} (${signedNumber(deltas[worstIndex])}). ${matchReviewTurnAdvice(report, bestIndex + 1, worstIndex + 1)}`,
+    tone: deltas.reduce((sum, value) => sum + value, 0) >= 0 ? "good" : "bad",
+  };
+}
+
+function combinedOpponentTurnScores(report) {
+  return Array.from({ length: 5 }, (_, index) => Number(report.opponentPrimaryTurns?.[index] || 0) + Number(report.opponentSecondaryTurns?.[index] || 0));
+}
+
+function matchReviewTurnAdvice(report, bestTurn, worstTurn) {
+  if (worstTurn <= 2) return "El problema aparecio temprano: revisa despliegue, pantallas y si regalaste una pieza antes de puntuar.";
+  if (worstTurn >= 4) return "La caida fue tarde: probablemente faltaron unidades moviles/OC vivas para cerrar mesa o secundarias.";
+  if (bestTurn <= 2 && report.result === "loss") return "Tuviste impacto temprano, pero no se convirtio en plan sostenido. Guarda una segunda oleada para T3.";
+  return "Usa esta curva para ajustar autopick: quieres reforzar el turno debil sin romper tu mejor ventana.";
+}
+
+function matchReviewSecondariesCard(report) {
+  const own = report.playerSecondaries || [];
+  const enemy = report.opponentSecondaries || [];
+  const secondaryDelta = Number(report.playerSecondary || 0) - Number(report.opponentSecondary || 0);
+  return {
+    title: "Secundarias",
+    body: `Tuyas: ${own.length ? own.join(", ") : "no detectadas"}. Rival: ${enemy.length ? enemy.join(", ") : "no detectadas"}. ${secondaryDelta >= 0 ? "Tus elecciones funcionaron o al menos no cedieron diferencial." : "Aqui cediste diferencial: en partidas parecidas, prioriza secundarias que tu lista pueda repetir sin exponerse."}`,
+    tone: secondaryDelta >= 0 ? "good" : "bad",
+  };
+}
+
+function matchReviewMissionCard(report) {
+  const mission = report.mission ? missionDisplayName(report.mission) : "mision no detectada";
+  const deployment = report.deployment ? deploymentDisplayName(report.deployment) : "deployment no detectado";
+  const wentFirst = report.playerWentFirst === true ? "fuiste primero" : report.playerWentFirst === false ? "fuiste segundo" : "orden de turno no detectado";
+  return {
+    title: "Mision y deployment",
+    body: `${mission} con ${deployment}; ${wentFirst}. ${matchReviewMissionAdvice(report)}`,
+    tone: "neutral",
+  };
+}
+
+function matchReviewMissionAdvice(report) {
+  const diff = Number(report.playerScore || 0) - Number(report.opponentScore || 0);
+  if (["supplyDrop", "terraform"].includes(report.mission) && diff < 0) return "Como esta mision paga tarde, revisa si gastaste demasiado recurso antes de T4-T5.";
+  if (["purgeFoe", "scorchedEarth"].includes(report.mission) && diff < 0) return "En esta combinacion los trades y acciones tempranas pesan mucho: no cambies unidades si no compran puntos.";
+  if (report.playerWentFirst === true && diff < 0) return "Si fuiste primero y perdiste, probablemente faltaron pantallas, staging o conversion de tempo en puntos.";
+  if (report.playerWentFirst === false && diff > 0) return "Ganar yendo segundo es buena senal: tu lista probablemente aguanta y responde bien.";
+  return "Guarda esta lectura para comparar misiones similares en memoria.";
+}
+
+function matchReviewListCard(report) {
+  if (!report.playerList?.units?.length && !report.enemyList?.units?.length) {
+    return {
+      title: "Listas vinculadas",
+      body: "Esta partida no tiene listas guardadas. Para feedback mas preciso, vincula tu lista y la rival cuando guardes el reporte.",
+      tone: "warn",
+    };
+  }
+  const playerStyle = inferMatchListStyle(report.playerList);
+  const enemyStyle = inferMatchListStyle(report.enemyList);
+  const playerPoints = report.playerList?.points || totalPoints(report.playerList?.units || []);
+  const enemyPoints = report.enemyList?.points || totalPoints(report.enemyList?.units || []);
+  return {
+    title: "Listas usadas",
+    body: `${report.playerList?.name || "Tu lista"} (${playerPoints || 0} pts, ${archetypeDisplayName(playerStyle || "midrange")}) vs ${report.enemyList?.name || "lista rival"} (${enemyPoints || 0} pts, ${archetypeDisplayName(enemyStyle || "midrange")}). ${matchReviewListAdvice(report, playerStyle, enemyStyle)}`,
+    tone: "neutral",
+  };
+}
+
+function matchReviewListAdvice(report, playerStyle, enemyStyle) {
+  if (!report.playerList?.units?.length || !report.enemyList?.units?.length) return "Vincular ambas listas permitira detectar si el problema fue matchup, mision o ejecucion.";
+  if (report.result === "loss" && enemyStyle === "horde") return "Contra este tipo de rival, sube valor de pantallas, control y dano eficiente antiinfanteria.";
+  if (report.result === "loss" && enemyStyle === "skew") return "Contra skew, evita dano disperso y considera mas redundancia en respuestas especificas.";
+  if (report.result === "loss" && enemyStyle === "mobilityTempo") return "Contra tempo, necesitas negar rutas y conservar scoring movil para el cierre.";
+  if (report.result === "win") return "Este pairing funciono: la memoria lo usara como referencia positiva para autopick y simulacion.";
+  return "La memoria usara este matchup para ajustar recomendaciones futuras.";
+}
+
+function matchReviewNextStepCard(report) {
+  const diff = Number(report.playerScore || 0) - Number(report.opponentScore || 0);
+  const primaryDelta = Number(report.playerPrimary || 0) - Number(report.opponentPrimary || 0);
+  const secondaryDelta = Number(report.playerSecondary || 0) - Number(report.opponentSecondary || 0);
+  let body = "Siguiente enfoque: ";
+  if (report.scoreKnown === false || report.result === "unknown") {
+    body += "vuelve a intentar OCR con la imagen completa y vincula listas antes de usar esta partida como referencia fuerte.";
+  } else if (diff >= 10) {
+    body += "mantener el plan, pero anotar que unidades hicieron scoring y cuales solo sobraron para poder optimizar sin romper lo que funciono.";
+  } else if (primaryDelta < -6) {
+    body += "practicar despliegue y movimientos de T1-T2 para no regalar primaria; el autopick deberia favorecer OC, pantallas y piezas de trading.";
+  } else if (secondaryDelta < -6) {
+    body += "revisar seleccion de secundarias; el autopick deberia favorecer unidades que repitan acciones o lleguen a cuadrantes sin morir.";
+  } else {
+    body += "partida pareja; identifica una decision de deployment y una de secundarias para probar distinto en la revancha.";
+  }
+  return { title: "Accion recomendada", body, tone: diff >= 0 ? "good" : "warn" };
 }
 
 function matchHistoryInsights() {
@@ -3602,13 +5780,13 @@ function parseMatchReport(text) {
   if (!lines.length) return null;
 
   const compact = lines.join("\n");
-  const scoreMatch = compact.match(/\b(\d{1,3})\s*[-\u2013]\s*(\d{1,3})\b/);
-  if (!scoreMatch) return null;
-  const scoreIndex = lines.findIndex((line) => /\b\d{1,3}\s*[-\u2013]\s*\d{1,3}\b/.test(line));
+  const score = extractReportScore(lines);
+  if (!score) return null;
+  const scoreIndex = score.index;
   const scoreLine = lines[scoreIndex] || "";
   const inlineScore = scoreLine.match(/^\s*([A-Za-z\u00C0-\u00FF' .-]{2,}?)\s+(\d{1,3})\s*[-\u2013]\s*(\d{1,3})\s+([A-Za-z\u00C0-\u00FF' .-]{2,})\s*$/);
-  const playerScore = Number(scoreMatch[1]);
-  const opponentScore = Number(scoreMatch[2]);
+  const playerScore = score.playerScore;
+  const opponentScore = score.opponentScore;
   const date = lines.find((line) => /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[a-z]*\.?\s+\d{1,2},?\s+\d{4}\b/i.test(line)) || "";
   const playerName = cleanReportName(inlineScore?.[1] || lines[Math.max(0, scoreIndex - 1)] || lines[0]);
   const opponentName = cleanReportName(inlineScore?.[4] || lines[scoreIndex + 1] || "");
@@ -3633,6 +5811,7 @@ function parseMatchReport(text) {
     opponentDetachment: detectReportDetachment(opponentBlock.text),
     playerScore,
     opponentScore,
+    rulesEdition: state.rulesEdition,
     result,
     playerWentFirst: playerBlock.wentFirst,
     opponentWentFirst: opponentBlock.wentFirst,
@@ -3661,13 +5840,48 @@ function parseMatchReport(text) {
 function reportPlayerBlock(lines, playerName, opponentName, player) {
   const startName = player ? playerName : opponentName;
   const otherName = player ? opponentName : playerName;
-  const start = Math.max(0, lines.findIndex((line, index) => index > 1 && normalizeName(line) === normalizeName(startName)));
-  const end = lines.findIndex((line, index) => index > start && normalizeName(line) === normalizeName(otherName));
+  const start = findReportHeadingIndex(lines, startName, player);
+  const otherIndex = findReportHeadingIndex(lines, otherName, !player);
+  const end = otherIndex > start ? otherIndex : lines.findIndex((line, index) => index > start + 4 && reportLineLooksLikePlayerHeading(line));
   const blockLines = lines.slice(start, end > start ? end : lines.length);
   return {
     text: blockLines.join("\n"),
     wentFirst: /went first/i.test(blockLines.join(" ")) ? true : /went second/i.test(blockLines.join(" ")) ? false : null,
   };
+}
+
+function findReportHeadingIndex(lines, name, player) {
+  const normalizedName = normalizeName(name);
+  const exact = lines.findIndex((line, index) => index > 1 && normalizeName(line) === normalizedName);
+  if (exact >= 0) return exact;
+  const fuzzy = lines.findIndex((line, index) => index > 1 && reportLineMatchesName(line, normalizedName));
+  if (fuzzy >= 0) return fuzzy;
+  const wentIndexes = lines
+    .map((line, index) => ({ line, index }))
+    .filter((item) => /went first|went second/i.test(item.line))
+    .map((item) => item.index);
+  if (wentIndexes.length >= 2) return player ? Math.max(0, wentIndexes[0] - 1) : Math.max(0, wentIndexes[1] - 1);
+  if (wentIndexes.length === 1) return player ? Math.max(0, wentIndexes[0] - 1) : Math.min(lines.length - 1, wentIndexes[0] + 8);
+  return player ? 0 : Math.floor(lines.length / 2);
+}
+
+function reportLineMatchesName(line, normalizedName) {
+  const normalizedLine = normalizeName(line);
+  if (!normalizedName || !normalizedLine || normalizedLine.length > 30) return false;
+  if (normalizedLine.includes(normalizedName) || normalizedName.includes(normalizedLine)) return true;
+  const nameTokens = normalizedName.split(" ").filter((token) => token.length > 1);
+  const lineTokens = normalizedLine.split(" ").filter((token) => token.length > 1);
+  if (!nameTokens.length || !lineTokens.length) return false;
+  const common = nameTokens.filter((token) => lineTokens.includes(token)).length;
+  return common / Math.max(nameTokens.length, lineTokens.length) >= 0.6;
+}
+
+function reportLineLooksLikePlayerHeading(line) {
+  const normalized = normalizeName(line);
+  if (!normalized || normalized.length > 28) return false;
+  if (/went first|went second|battle ready|cp remaining|mission|deployment|victory|defeat|draw/.test(normalized)) return false;
+  if (knownSecondaryNames().some((secondary) => normalizeName(secondary) === normalized)) return false;
+  return /^[a-z0-9 ]+$/.test(normalized) && normalized.split(" ").length <= 4;
 }
 
 function cleanReportName(value = "") {
@@ -3720,32 +5934,71 @@ function detectReportDetachment(text) {
 }
 
 function extractSectionScore(text, total) {
-  return Number(String(text).match(new RegExp(`(\\d{1,2})\\s*\\/\\s*${total}`))?.[1] || 0);
+  return extractScoreBeforeTotal(text, total);
 }
 
 function extractTurnScores(text, total) {
-  const lines = String(text || "").split(/\r?\n/);
-  const line = lines.find((item) => new RegExp(`\\d{1,2}\\s*\\/\\s*${total}`).test(item));
-  if (!line) return [0, 0, 0, 0, 0];
-  const beforeTotal = line.replace(new RegExp(`\\d{1,2}\\s*\\/\\s*${total}.*$`), "");
-  const cells = [...beforeTotal.matchAll(/-|\d{1,2}/g)].map((match) => match[0] === "-" ? 0 : Number(match[0]));
+  const lines = normalizeOcrReportText(text).split(/\r?\n/);
+  const totalLine = lines.map((line) => ({ line, parsed: extractScoreBeforeTotalLine(line, total) })).find((item) => item.parsed);
+  if (!totalLine) return [0, 0, 0, 0, 0];
+  const cells = ocrTurnCells(totalLine.parsed.before).map((value) => clampNumber(value, 0, total));
   const normalized = cells.slice(-5);
   while (normalized.length < 5) normalized.unshift(0);
   return normalized;
 }
 
 function extractBattleReady(text) {
-  return Number(String(text).match(/battle ready\s*(\d{1,2})\s*\/\s*10/i)?.[1] || 0);
+  const line = normalizeOcrReportText(text).split(/\r?\n/).find((item) => /battle ready/i.test(item)) || "";
+  return extractScoreBeforeTotal(line, 10);
 }
 
 function extractCpTurns(text) {
-  const lines = String(text || "").split(/\r?\n/);
+  const lines = normalizeOcrReportText(text).split(/\r?\n/);
   const index = lines.findIndex((line) => /cp remaining/i.test(line));
   const line = index >= 0 ? `${lines[index]} ${lines[index + 1] || ""}` : "";
-  const cells = [...line.matchAll(/-|\d{1,2}/g)].map((match) => match[0] === "-" ? 0 : Number(match[0]));
+  const cells = ocrTurnCells(line).map((value) => clampNumber(value, 0, 10));
   const normalized = cells.slice(-5);
   while (normalized.length < 5) normalized.unshift(0);
   return normalized;
+}
+
+function extractScoreBeforeTotal(text, total) {
+  const normalized = normalizeOcrReportText(text);
+  const lines = normalized.split(/\r?\n/);
+  const parsed = lines.map((line) => extractScoreBeforeTotalLine(line, total)).find(Boolean);
+  return parsed ? clampNumber(parsed.score, 0, total) : 0;
+}
+
+function totalPatternFor(total) {
+  return new RegExp(`${ocrScoreNumberPattern()}\\s*\\/\\s*${ocrTotalPattern(total)}\\b.*$`, "i");
+}
+
+function extractScoreBeforeTotalLine(line, total) {
+  const pattern = new RegExp(`(^|\\s)(${ocrScoreNumberPattern()})\\s*\\/\\s*${ocrTotalPattern(total)}\\b`, "i");
+  const match = String(line || "").match(pattern);
+  if (!match) return null;
+  return {
+    score: parseOcrScoreNumber(match[2]),
+    before: String(line || "").slice(0, match.index + match[1].length),
+    raw: match[0],
+  };
+}
+
+function ocrScoreNumberPattern() {
+  return "[0-9OoIlSBg](?:\\s*[0-9OoIlSBg,.])?";
+}
+
+function ocrTurnCells(line = "") {
+  return [...String(line || "").matchAll(/-|\b[0-9OoIlSBg](?:\s*[0-9OoIlSBg,.])?\b/g)]
+    .map((match) => match[0] === "-" ? 0 : parseOcrScoreNumber(match[0]))
+    .filter((value) => Number.isFinite(value));
+}
+
+function ocrTotalPattern(total) {
+  if (total === 50) return "[5S]\\s*[0Oo]";
+  if (total === 40) return "4\\s*[0Oo]";
+  if (total === 10) return "[1Il]\\s*[0Oo]";
+  return String(total).split("").join("\\s*");
 }
 
 function extractSecondaries(text) {
@@ -3766,10 +6019,13 @@ function captureMatchList(side) {
   const units = side === "enemy" ? state.enemyRoster : state.roster;
   const faction = currentFaction(side);
   const detachment = selectedDetachment(side);
+  const detachments = activeDetachments(side);
   return {
     name: exportListName(side),
     faction: faction?.name || "",
     detachment: detachment?.name || "",
+    detachmentLoadout: detachments.map((item) => item.name).join(" + "),
+    detachmentPoints: detachments.reduce((sum, item) => sum + detachmentPointCost(item), 0),
     points: totalPoints(units),
     units: cloneData(units),
   };
@@ -3798,6 +6054,13 @@ function renderSimulation() {
 function renderMissionPresetSummary() {
   const summary = $("#missionPresetSummary");
   if (!summary) return;
+  if (state.rulesEdition === "11e") {
+    const own = $("#forceDisposition")?.value || inferForceDisposition("player");
+    const enemy = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+    const terrain = terrainProfileInfo($("#terrainProfile")?.value || "balancedAreas");
+    summary.textContent = `11va: ${forceDispositionLabel(own)} contra ${forceDispositionLabel(enemy)}. Terreno: ${terrain.label}. Layout seleccionado: ${layoutLabel($("#layout").value)}. El calculo usa mision asimetrica, Hidden/terreno y rutas de puntaje.`;
+    return;
+  }
   const preset = selectedMissionPreset();
   if (!preset) {
     summary.textContent = "Configuracion manual de mision, deployment y layout.";
@@ -3915,11 +6178,30 @@ function turnAdviceText(context) {
     lines.push(`Cierra el diferencial con ${pieces.scorer}: prioriza OC, acciones y secundarias probables sobre dano que no cambie puntos.`);
   }
   lines.push(missionDeploymentTurnNote(context, pieces));
+  if (state.rulesEdition === "11e") lines.push(edition11TurnNote(context, pieces));
   if (beginner) lines.push("Para principiante: elige una tarea por unidad antes de moverla y evita planes que dependan de medir tres amenazas a la vez.");
   if (conservative) lines.push("Con tolerancia baja al riesgo, no hagas all-in si el trade no te da primaria o secundaria inmediata.");
   if (aggressive && context.turn === context.turnPlan.bestTurn) lines.push("Tu tolerancia alta permite una jugada de tempo, pero guarda una unidad de rescate para el siguiente turno.");
   if (open && context.enemy.shooting > 62) lines.push("El layout abierto aumenta el castigo por exponerte: usa movimiento minimo hasta tener un objetivo claro.");
   return lines.join(" ");
+}
+
+function edition11TurnNote(context, pieces) {
+  const terrain = $("#terrainProfile")?.value || "balancedAreas";
+  const ownDisposition = $("#forceDisposition")?.value || inferForceDisposition("player");
+  const enemyDisposition = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+  const terrainInfo = terrainProfileInfo(terrain);
+  const notes = [];
+  if (context.turn === 1) {
+    if (terrainInfo.hidden) notes.push(`En 11va, usa el terreno para preservar Hidden con ${pieces.scorer} o ${pieces.trade}; no dispares con una unidad si perder Hidden abre una activacion rival decisiva.`);
+    if (terrain === "openLanes") notes.push(`Con lineas abiertas, protege ${pieces.damage} en reserva, detras de area o fuera de angulos; aqui el primer error de exposicion pesa mas que el dano temprano.`);
+  }
+  if (ownDisposition === "reconnaissance" && context.turn >= 2) notes.push(`Tu Force Disposition premia rutas: ${pieces.scorer} debe moverse antes de que ${pieces.damage} busque bajas.`);
+  if (ownDisposition === "priorityTargets" && context.turn <= 3) notes.push(`Para Priority Targets, asigna ${pieces.damage} a la pieza rival que mas altere primaria o secundarias; matar una unidad irrelevante no sostiene la mision.`);
+  if (ownDisposition === "disruption" && context.turn <= 2) notes.push(`Para Disruption, ${pieces.pressure} debe obligar al rival a puntuar mal, no solo a retroceder.`);
+  if (enemyDisposition === "purgeFoe" && context.turn <= 2) notes.push(`Como el rival puntua por destruccion, sacrifica solo ${pieces.screen} y evita entregar unidades medianas sin ganar posicion.`);
+  if (terrain === "objectiveStrongholds" && context.turn >= 2) notes.push(`Los objetivos como terreno hacen que ${pieces.anchor} y OC repartido sean mas valiosos que perseguir kills fuera de zona.`);
+  return notes.join(" ");
 }
 
 function missionDeploymentTurnNote(context, pieces) {
@@ -4090,9 +6372,37 @@ function inferredTurnPlan() {
   const enemy = armyProfile(state.enemyRoster);
   const playstyle = $("#playstyle").value;
   const risk = Number($("#risk").value || 5);
-  const early = player.mobility * 0.34 + player.melee * 0.22 + player.antiTank * 0.18 + player.control * 0.14 + (playstyle === "alphaStrike" ? 12 : 0) + (playstyle === "meleeRush" ? 10 : 0);
-  const mid = player.scoring * 0.28 + player.control * 0.24 + player.durability * 0.22 + Math.max(player.melee, player.shooting) * 0.16 + (playstyle === "midrange" ? 8 : 0);
-  const late = player.durability * 0.26 + player.scoring * 0.26 + player.control * 0.18 + player.mobility * 0.16 + (playstyle === "attrition" ? 10 : 0);
+  let early = player.mobility * 0.34 + player.melee * 0.22 + player.antiTank * 0.18 + player.control * 0.14 + (playstyle === "alphaStrike" ? 12 : 0) + (playstyle === "meleeRush" ? 10 : 0);
+  let mid = player.scoring * 0.28 + player.control * 0.24 + player.durability * 0.22 + Math.max(player.melee, player.shooting) * 0.16 + (playstyle === "midrange" ? 8 : 0);
+  let late = player.durability * 0.26 + player.scoring * 0.26 + player.control * 0.18 + player.mobility * 0.16 + (playstyle === "attrition" ? 10 : 0);
+  if (state.rulesEdition === "11e") {
+    const disposition = $("#forceDisposition")?.value || inferForceDisposition("player");
+    const terrain = $("#terrainProfile")?.value || "balancedAreas";
+    if (disposition === "disruption") early += 8;
+    if (disposition === "priorityTargets") early += 5;
+    if (disposition === "purgeFoe") mid += 7;
+    if (disposition === "takeHold") {
+      mid += 5;
+      late += 4;
+    }
+    if (disposition === "reconnaissance") {
+      early += 3;
+      late += 7;
+    }
+    if (terrain === "denseHidden") {
+      early -= player.shooting > player.melee ? 4 : 1;
+      mid += 5;
+    }
+    if (terrain === "objectiveStrongholds") {
+      mid += 4;
+      late += 5;
+    }
+    if (terrain === "openLanes") early += player.shooting > 58 ? 4 : -3;
+    if (terrain === "mixedVertical") {
+      early += player.mobility > 58 ? 4 : -2;
+      late += 3;
+    }
+  }
   const enemyEarlyTax = Math.max(enemy.melee, enemy.shooting) > 68 ? 6 : 0;
   const swing = risk >= 8 ? 4 : risk <= 3 ? -2 : 0;
   return [
@@ -4136,7 +6446,17 @@ function missionRecommendationItems(turnPlan) {
   const history = historyAnalysisModifier();
   const items = [];
 
+  items.push({ title: `Marco de reglas: ${currentEditionProfile().label}`, body: editionPlanText(player, enemy) });
+  if (state.rulesEdition === "11e") {
+    items.push({ title: "Mision 11va / Force Dispositions", body: forceDispositionAnalysisText(player, enemy) });
+    items.push({ title: "Terreno 11va", body: terrainAnalysisText(player, enemy) });
+  }
   items.push({ title: "Plan de mision", body: missionPlanText(mission, player, enemy, turnPlan) });
+  if (state.enemyRoster.length) {
+    items.push({ title: "Matchup directo", body: matchupPlanText(player, enemy) });
+    items.push({ title: "Amenazas de la lista rival", body: enemyThreatPlanText(player, enemy) });
+    items.push({ title: "Tus respuestas al rival", body: playerResponsePlanText(player, enemy) });
+  }
   items.push({ title: "Secundarias sugeridas", body: missionSecondaryAdvice(mission, player, enemy) });
   items.push({ title: "Deployment y layout", body: deploymentPlanText(deployment, layout, player, enemy, enemyStyle) });
   items.push({ title: "Factores del calculo", body: analysisFactorText(player, enemy, turnPlan) });
@@ -4146,11 +6466,176 @@ function missionRecommendationItems(turnPlan) {
   return items;
 }
 
+function editionPlanText(player, enemy) {
+  const edition = currentEditionProfile();
+  if (state.rulesEdition === "10e") return "Analisis en 10ma: se mantienen los pesos originales de OC, Chapter Approved, battleshock, estratagemas, reglas de faccion/detachment y datasheets actuales.";
+  const enemyText = state.enemyRoster.length ? ` Contra el rival cargado, ${enemy.control > player.control ? "debes negar control de terreno antes de buscar dano" : "tu control de mesa no esta por debajo del rival, asi que puedes convertir trades en puntos"}.` : "";
+  return `${edition.summary} ${forceDispositionPlanText()} ${terrainPlanText(player, enemy)}${enemyText}`;
+}
+
+function forceDispositionPlanText() {
+  if (state.rulesEdition !== "11e") return "";
+  const own = $("#forceDisposition")?.value || inferForceDisposition("player");
+  const enemy = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+  return `Mision asimetrica: tu Force Disposition es ${forceDispositionLabel(own)} y la rival ${forceDispositionLabel(enemy)}; el plan se evalua por cumplir tu condicion primaria sin regalar la condicion rival.`;
+}
+
+function terrainPlanText(player, enemy) {
+  if (state.rulesEdition !== "11e") return "";
+  const profile = terrainProfileInfo($("#terrainProfile")?.value || "balancedAreas");
+  const warning = profile.hidden && enemy.shooting > player.durability + 10
+    ? " Usa Hidden para negar disparo largo y obligar al rival a entrar en tu rango de respuesta."
+    : "";
+  return `Terreno: ${profile.label}. ${profile.advice}${warning}`;
+}
+
+function forceDispositionAnalysisText(player, enemy) {
+  const own = $("#forceDisposition")?.value || inferForceDisposition("player");
+  const rival = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+  const ownScore = forceDispositionScore(player, own);
+  const rivalScore = state.enemyRoster.length ? forceDispositionScore(enemy, rival) : 55;
+  const denial = state.enemyRoster.length ? forceDispositionDenialScore(player, rival) : forceDispositionDenialScore(player, rival) * 0.72;
+  const plan = [];
+  if (own === "takeHold") plan.push("gana por OC repetible: no cambies tus unidades de puntaje antes de obligar al rival a entrar al terreno");
+  if (own === "disruption") plan.push("usa presion y pantallas para que el rival tenga turnos incomodos de primaria, aunque no mates demasiado");
+  if (own === "purgeFoe") plan.push("concentra dano: una unidad destruida vale mas que heridas repartidas");
+  if (own === "priorityTargets") plan.push("marca desde despliegue que amenazas deben caer primero y conserva tus piezas de dano hasta tener blanco real");
+  if (own === "reconnaissance") plan.push("prioriza rutas, reservas y unidades moviles; matar es secundario si no te abre una ruta de puntaje");
+  return `Tu ajuste: ${forceDispositionLabel(own)} (${Math.round(ownScore)}) contra ${forceDispositionLabel(rival)} (${Math.round(rivalScore)}). Denial estimado ${Math.round(denial)}. Plan: ${plan.join("; ")}.`;
+}
+
+function terrainAnalysisText(player, enemy) {
+  const terrainKey = $("#terrainProfile")?.value || "balancedAreas";
+  const terrain = terrainProfileInfo(terrainKey);
+  const ownFit = terrainFitScore(player, terrainKey);
+  const enemyFit = state.enemyRoster.length ? terrainFitScore(enemy, terrainKey) : 55;
+  const advice = [];
+  if (terrain.hidden) advice.push("usa Hidden como recurso: decide que unidades disparan y cuales se quedan sin revelar para puntuar despues");
+  if (terrainKey === "openLanes") advice.push("en lineas abiertas, reserva o esconde dano clave y no entregues unidades medianas sin puntaje inmediato");
+  if (terrainKey === "objectiveStrongholds") advice.push("las unidades durables con OC deben entrar al terreno antes que las piezas puramente ofensivas");
+  if (terrainKey === "denseHidden") advice.push("el valor sube para melee, trading y control de rutas; baja el alpha de disparo que no pueda reposicionarse");
+  if (terrainKey === "mixedVertical") advice.push("prioriza deep strike, vuelo, infiltracion y piezas que puedan cambiar de ruta sin perder turnos");
+  const enemyText = state.enemyRoster.length ? ` El rival calza ${Math.round(enemyFit)}; si supera tu valor, juega denial antes de buscar trades.` : " Sin lista rival, se compara contra una base neutral.";
+  return `${terrain.label}: tu ajuste ${Math.round(ownFit)}.${enemyText} ${advice.join(" ")}`;
+}
+
 function missionSecondaryAdvice(mission, player, enemy) {
   const scored = missionSecondaryScores(mission, player, enemy);
   const good = scored.slice(0, 3).map((item) => `${item.secondary} (${signedDecimal(item.score)})`);
   const bad = scored.slice(-3).reverse().map((item) => `${item.secondary} (${signedDecimal(item.score)})`);
   return `Convienen: ${good.join(", ")}. Evita o toma con cuidado: ${bad.join(", ")}. La recomendacion cruza memoria, mision, movilidad, OC/control y perfil del rival.`;
+}
+
+function matchupPlanText(player, enemy) {
+  const factors = matchupBreakdown(player, enemy).sort((a, b) => a.value - b.value);
+  const worst = factors[0];
+  const best = [...factors].sort((a, b) => b.value - a.value)[0];
+  const advice = [];
+  if (player.antiTank < enemy.durability - 12) advice.push("no intentes resolver todo por bajas: concentra anti-tank en una pieza por turno y puntua/niega el resto");
+  if (enemy.mobility > player.control + 12) advice.push("usa pantallas para cortar rutas y reserva unidades de OC para recuperar objetivos, no para trades tempranos");
+  if (enemy.scoring + enemy.control > player.scoring + player.control + 18) advice.push("la partida se gana negando primarias: prioriza move-block, OC y secundarias seguras sobre dano marginal");
+  if (enemy.shooting > player.durability + 15) advice.push("evita lineas largas T1: staged deployment, reservas y sacrificar solo piezas baratas");
+  if (!advice.length) advice.push("el matchup parece jugable: decide desde despliegue que recurso rival vas a negar primero");
+  return `Mayor ventaja: ${best.label} (${signedDecimal(best.value)}, ${best.note}). Mayor riesgo: ${worst.label} (${signedDecimal(worst.value)}, ${worst.note}). Plan: ${advice.slice(0, 2).join("; ")}.`;
+}
+
+function enemyThreatPlanText(player, enemy) {
+  const threats = enemyThreatItems(player, enemy);
+  if (!threats.length) return "La lista rival no muestra una amenaza unica dominante. Juega por negar puntos, no por perseguir bajas aisladas.";
+  return threats.slice(0, 3).map((item) => `${item.title}: ${item.body}`).join(" ");
+}
+
+function playerResponsePlanText(player, enemy) {
+  const responses = playerResponseItems(player, enemy);
+  if (!responses.length) return "Tu lista tiene respuestas razonablemente balanceadas. El valor esta en asignarlas por tarea: scorer para puntos, dano para amenazas y pantalla para negar tempo.";
+  return responses.slice(0, 3).map((item) => `${item.title}: ${item.body}`).join(" ");
+}
+
+function enemyThreatItems(player, enemy) {
+  if (!state.enemyRoster.length) return [];
+  const items = [];
+  const enemyStyle = currentEnemyStyle();
+  if (enemy.antiTank > player.durability - 6 || enemy.shooting > 62) {
+    items.push({
+      title: "Disparo/anti-tank rival",
+      body: `${topUnitNamesForRoles(state.enemyRoster, ["antiTank", "shooting"])} son las piezas que mas castigan exposicion. En despliegue, no les regales tu ancla ni tu respuesta principal antes de tener blanco de vuelta.`,
+      urgency: enemy.antiTank + enemy.shooting - player.durability,
+    });
+  }
+  if (enemy.melee > player.melee - 5 || enemyStyle === "meleeRush") {
+    items.push({
+      title: "Presion melee rival",
+      body: `${topUnitNamesForRoles(state.enemyRoster, ["melee", "mobility"])} pueden convertir un error de pantalla en perdida de primaria. Deja una unidad barata como cebo y la respuesta real a 3-5 pulgadas detras.`,
+      urgency: enemy.melee + enemy.mobility - player.control,
+    });
+  }
+  if (enemy.scoring + enemy.control > player.scoring + player.control + 8 || ["horde", "mobilityTempo", "trading"].includes(enemyStyle)) {
+    items.push({
+      title: "Scoring y control rival",
+      body: `${topUnitNamesForRoles(state.enemyRoster, ["scoring", "control", "mobility"])} son las piezas que ganan sin matar. Prioriza negarles rutas y OC, incluso si otra unidad parece mas peligrosa en dano.`,
+      urgency: enemy.scoring + enemy.control - player.scoring - player.control,
+    });
+  }
+  if (enemy.durability > player.antiTank + 10 || enemyStyle === "skew" || enemyStyle === "attrition") {
+    items.push({
+      title: "Resistencia/skew rival",
+      body: `${topUnitNamesForRoles(state.enemyRoster, ["durability"])} no deben recibir dano disperso. Si no puedes matar una pieza completa, usa ese turno para puntuar, encerrar o aislar.`,
+      urgency: enemy.durability - player.antiTank,
+    });
+  }
+  return items.sort((a, b) => b.urgency - a.urgency);
+}
+
+function playerResponseItems(player, enemy) {
+  if (!state.roster.length || !state.enemyRoster.length) return [];
+  const items = [];
+  if (enemy.durability > 58 || enemy.antiTank > 58) {
+    items.push({
+      title: "Respuesta a piezas duras",
+      body: `${topUnitNamesForRoles(state.roster, ["antiTank", "shooting", "melee"])} deben concentrar activaciones en una amenaza por turno. No dividas dano si el resultado no cambia primaria o secundarias.`,
+      urgency: enemy.durability - player.antiTank,
+    });
+  }
+  if (enemy.mobility + enemy.scoring > 112) {
+    items.push({
+      title: "Respuesta a movilidad/scoring",
+      body: `${topUnitNamesForRoles(state.roster, ["control", "scoring", "mobility"])} son tus piezas para cerrar rutas, recuperar objetivo y negar secundarias. Usalas antes de gastar dano premium.`,
+      urgency: enemy.mobility + enemy.scoring - player.control - player.scoring,
+    });
+  }
+  if (enemy.melee > 58) {
+    items.push({
+      title: "Respuesta a cargas",
+      body: `${topUnitNamesForRoles(state.roster, ["durability", "control", "melee"])} deben jugar como pantalla y contra-carga. El primer contacto rival debe pegarle a algo que puedas permitirte perder.`,
+      urgency: enemy.melee - player.control,
+    });
+  }
+  if (enemy.shooting > 60) {
+    items.push({
+      title: "Respuesta a gunline/alpha",
+      body: `${topUnitNamesForRoles(state.roster, ["mobility", "durability", "scoring"])} son las piezas para staging, reservas y puntuar sin exponerte. En layout abierto, tu primera meta es sobrevivir T1.`,
+      urgency: enemy.shooting - player.durability,
+    });
+  }
+  return items.sort((a, b) => b.urgency - a.urgency);
+}
+
+function topUnitNamesForRoles(units, roles, limit = 3) {
+  const names = [...new Set(topUnitsForRoles(units, roles, limit + 3).map((item) => item.unit.name))].slice(0, limit);
+  return names.length ? names.join(", ") : "las unidades clave de ese rol";
+}
+
+function topUnitsForRoles(units, roles, limit = 3) {
+  return units
+    .map((unitData) => {
+      const profile = unitProfileScores(unitData);
+      const roleScore = roles.reduce((sum, role) => sum + Number(profile[role] || 0), 0) / Math.max(1, roles.length);
+      const pointBias = Math.min(0.12, unitTotalPoints(unitData) / Math.max(1, state.gameSize) * 0.35);
+      return { unit: unitData, score: roleScore + pointBias };
+    })
+    .filter((item) => item.score >= 0.34)
+    .sort((a, b) => b.score - a.score || unitTotalPoints(b.unit) - unitTotalPoints(a.unit))
+    .slice(0, limit);
 }
 
 function missionSecondaryScores(mission, player, enemy) {
@@ -4182,6 +6667,7 @@ function signedDecimal(value) {
 }
 
 function secondaryPlanModifier(player, enemy) {
+  if (!state.enemyRoster.length) return 0;
   const scored = missionSecondaryScores($("#mission").value, player, enemy);
   if (!scored.length) return 0;
   const top = scored.slice(0, 3).reduce((sum, item) => sum + item.score, 0) / Math.min(3, scored.length);
@@ -4203,23 +6689,45 @@ function turnPlanModifier(turnPlan = missionTurnPlan()) {
 }
 
 function analysisFactorItems(player, enemy, turnPlan) {
-  const history = historyWinRateModifier();
-  return [
-    { label: "Mision", value: missionModifier(player, enemy), note: "roles que premia la primaria actual" },
-    { label: "Deployment", value: deploymentModifier(), note: "distancia, angulos y presion inicial" },
-    { label: "Layout", value: layoutModifier(), note: "densidad, lineas y rutas de staging" },
-    { label: "Secundarias", value: secondaryPlanModifier(player, enemy), note: "facilidad para puntuar y negar" },
-    { label: "Turnos", value: turnPlanModifier(turnPlan), note: `pico T${turnPlan.bestTurn}, turno delicado T${turnPlan.weakTurn}` },
-    { label: "Memoria", value: history, note: history ? "partidas guardadas similares" : "sin impacto historico relevante" },
-  ];
+  return analysisWeightedFactors(player, enemy, turnPlan).map((item) => ({
+    label: item.label,
+    value: item.contribution,
+    note: `${item.note}; peso ${item.weight}%`,
+  }));
+}
+
+function matchupFactorSummary(player, enemy) {
+  const factors = matchupBreakdown(player, enemy).sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).slice(0, 2);
+  return factors.map((item) => `${item.label.toLowerCase()} ${signedDecimal(item.value)}`).join(", ") || "sin diferencial claro";
 }
 
 function analysisFactorText(player, enemy, turnPlan) {
   const items = analysisFactorItems(player, enemy, turnPlan);
-  return items.map((item) => `${item.label} ${signedDecimal(item.value)}: ${item.note}`).join(" / ");
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  return `${items.map((item) => `${item.label} ${signedDecimal(item.value)}: ${item.note}`).join(" / ")}. Impacto total ${signedDecimal(total)} puntos de probabilidad.`;
 }
 
 function missionPlanText(mission, player, enemy, turnPlan) {
+  if (state.rulesEdition === "11e") {
+    const own = $("#forceDisposition")?.value || inferForceDisposition("player");
+    const rival = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+    const missionPlans = {
+      takeHold: "Tu primaria pide presencia estable: conserva OC, entra a objetivos con redundancia y no cambies tu ultima pieza de mesa por dano.",
+      disruption: "Tu primaria pide incomodar al rival: pantallas, move-block y presion lateral valen tanto como matar.",
+      purgeFoe: "Tu primaria pide destruir recursos: concentra activaciones y evita dano disperso que no retire unidades completas.",
+      priorityTargets: "Tu primaria pide elegir bien los blancos: mata lo que altera puntos, no lo que se ve mas facil.",
+      reconnaissance: "Tu primaria pide rutas: movilidad, reservas y unidades de accion deben vivir mas que tus piezas puramente ofensivas.",
+    };
+    const denialPlans = {
+      takeHold: "Al rival le niegas OC sacandolo de objetivos antes de que consolide dos turnos.",
+      disruption: "Al rival le niegas valor evitando entregarle cargas o bloqueos gratis.",
+      purgeFoe: "Al rival le niegas valor no regalando unidades medianas sin ganar primaria o secundaria.",
+      priorityTargets: "Al rival le niegas valor escondiendo sus objetivos prioritarios hasta que puedas responder.",
+      reconnaissance: "Al rival le niegas valor cerrando rutas con pantallas y control lateral.",
+    };
+    const timing = turnPlan.bestTurn >= 4 ? " Como tu pico es tardio, T1-T2 deben comprar tiempo." : " Como tu pico llega temprano/medio, conviertelo en ventaja de mesa antes de quedarte sin recursos.";
+    return `${missionPlans[own] || missionPlans.takeHold} ${denialPlans[rival] || denialPlans.takeHold}${timing}`;
+  }
   const plans = {
     takeHold: "Prioriza OC y trading en medio campo. No basta matar: necesitas dos turnos buenos de primaria y una pieza que pueda recuperar objetivo despues del primer intercambio.",
     supplyDrop: "La mision se vuelve mas exigente al final. Conserva recursos moviles para T4-T5 y evita gastar todas las piezas de trading en los dos primeros turnos.",
@@ -4238,6 +6746,13 @@ function deploymentPlanText(deployment, layout, player, enemy, enemyStyle) {
   const wide = ["hammer", "search"].includes(deployment);
   const close = ["tippingPoint", "crucible", "sweeping"].includes(deployment);
   const dense = /dense|ca2|ca4|ca6|ca7|wtc|ftc/i.test(layout);
+  if (state.rulesEdition === "11e") {
+    const terrain = terrainProfileInfo($("#terrainProfile")?.value || "balancedAreas");
+    const hiddenNote = terrain.hidden ? "Hidden hace que el staging sea parte del plan: decide que unidad revela posicion y cual se queda viva para puntuar despues." : "Sin tanto Hidden, las lineas abiertas castigan despliegues ambiciosos: reserva dano y usa angulos cortos.";
+    if (enemyStyle === "alphaStrike" || enemy.shooting > 68) return `${hiddenNote} Contra alpha/disparo rival, tu primera prioridad es que la pieza clave no pueda ser elegida sin que el rival se exponga.`;
+    if (enemyStyle === "meleeRush" || enemy.melee > 68) return `${hiddenNote} Contra melee, usa terreno como embudo y deja countercharge detras del objetivo, no encima de el.`;
+    if (terrain.label.includes("fortificados")) return `${hiddenNote} Los objetivos como terreno premian entrar con durabilidad y OC; despliega para ocupar dos zonas, no para perseguir el primer kill.`;
+  }
   if (enemyStyle === "alphaStrike" || enemy.shooting > 68) return dense ? "Usa el terreno para negar el alpha. Despliega con redundancia: una pieza visible debe ser cebo, no tu unica respuesta." : "Layout abierto contra dano alto: reserva o esconde piezas clave, y acepta puntuar menos T1 si eso conserva recursos.";
   if (enemyStyle === "meleeRush" || enemy.melee > 68) return close ? "Deployment cercano contra melee: pantalla en capas, mide consolidaciones y deja countercharge detras, no al frente." : "Aprovecha la distancia para obligar charges largas y castigar el segundo oleaje.";
   if (wide && player.mobility < 52) return "Deployment ancho con movilidad baja: no sobreextiendas. Elige dos zonas de mesa y concede la tercera hasta tener intercambio favorable.";
@@ -4318,11 +6833,27 @@ function unitFit(side, unitData, playstyle) {
   const detachment = isEnemy ? state.enemyDetachment : state.detachment;
   const profile = isEnemy ? "competitive" : state.profile;
   const styleBonus = archetypeLegacyStyles(playstyle).some((style) => unitData.styles.includes(style)) ? 2 : 0;
-  const detachmentBonus = unitData.styles.some((style) => detachment.styles.includes(style)) ? 1.25 : 0;
+  const detachmentStyles = activeDetachmentStyles(side);
+  const detachmentBonus = unitData.styles.some((style) => detachmentStyles.includes(style)) ? 1.25 : 0;
   const metaBonus = isEnemy ? 0 : metaFit(unitData);
   const characterBonus = characterPlanScore(unitData, { side, profile, playstyle, baseUnits: [], needsWarlord: true, characterCount: 0 });
   const identityBonus = archetypeIdentityScore(unitData, { side, profile, playstyle, baseUnits: [], structure: {}, minimums: (archetypes[playstyle] || archetypes.midrange).minimums }) * 1.2;
-  return unitData.ratings[profile] + styleBonus + identityBonus + detachmentBonus + metaBonus + characterBonus;
+  return unitData.ratings[profile] + styleBonus + identityBonus + detachmentBonus + metaBonus + characterBonus + editionUnitFit(unitData, playstyle);
+}
+
+function editionUnitFit(unitData, playstyle = "midrange") {
+  if (state.rulesEdition !== "11e") return 0;
+  const features = unitFeatures(unitData);
+  let score = 0;
+  score += (features.scoring || 0) * 0.45;
+  score += (features.boardControl || 0) * 0.4;
+  score += (features.speed || 0) * 0.35;
+  score += (features.deepStrike || 0) * 0.3;
+  score += (features.transport || 0) * 0.22;
+  score += (features.independent || 0) * 0.28;
+  if (features.shooting && !features.mobility && !features.independent && ["mobilityTempo", "trading", "meleeRush"].includes(playstyle)) score -= 0.35;
+  if (features.buff && !features.independent && currentEditionProfile().features.noStratStacking) score -= 0.18;
+  return clampNumber(score, -0.7, 1.25);
 }
 
 function metaFit(unitData) {
@@ -4547,7 +7078,9 @@ function passesArchetypeSanityGate(roster, unitData, context) {
   if (identity < -1.2 && currentPoints >= state.gameSize * 0.35) return false;
 
   if (context.playstyle === "alphaStrike") {
-    const alphaTool = features.antiTank || features.rangedAntiTank || features.deepStrike || features.shooting || features.speed;
+    const weapons = unitWeaponFeatureScores(unitData);
+    const mobileThreat = features.speed && (features.deepStrike || features.charge || weapons.shooting >= 0.45 || weapons.antiTank >= 0.45 || weapons.melee >= 0.45);
+    const alphaTool = features.antiTank || features.rangedAntiTank || features.deepStrike || features.shooting || mobileThreat;
     if (unitData.section === "Battleline" && !alphaTool && structure.scoring >= 1) return false;
     if (!alphaTool && !structural && currentPoints >= state.gameSize * 0.25) return false;
   }
@@ -4586,6 +7119,8 @@ function contextForRoster(baseContext, roster) {
     playstyle: baseContext.playstyle,
     profile: baseContext.profile,
     detachment: baseContext.detachment,
+    activeDetachments: baseContext.activeDetachments,
+    detachmentStyles: baseContext.detachmentStyles,
     risk: baseContext.risk,
     experience: baseContext.experience,
     isEnemy: baseContext.isEnemy,
@@ -4598,6 +7133,8 @@ function marginalAutoPickScore(unitData, roster, context) {
   const after = contextForRoster(context, afterRoster);
   const beforeStructure = before.structure || rosterStructure(roster);
   const afterStructure = after.structure || rosterStructure(afterRoster);
+  const features = unitFeatures(unitData);
+  const weapons = unitWeaponFeatureScores(unitData);
   let score = 0;
 
   Object.entries(after.minimums || {}).forEach(([need, target]) => {
@@ -4614,8 +7151,11 @@ function marginalAutoPickScore(unitData, roster, context) {
   score += counterMetaPackageScore(unitData, roster, context);
 
   if (countUnit(roster, unitData.name) > 0) score += repeatMarginalScore(unitData, roster, context);
-  if (unitData.section === "Battleline" && !fillsCurrentStructuralNeed(unitData, before) && archetypePlanFit(unitData, context.playstyle) < weakArchetypeFitThreshold(context.playstyle)) score -= 3.6;
-  if (!fillsCurrentStructuralNeed(unitData, before) && archetypeIdentityScore(unitData, context) < -0.6) score -= 4.8;
+  const fillsNeed = fillsCurrentStructuralNeed(unitData, before);
+  if (unitData.section === "Battleline" && !fillsNeed && archetypePlanFit(unitData, context.playstyle) < weakArchetypeFitThreshold(context.playstyle)) score -= 3.6;
+  if (!fillsNeed && archetypeIdentityScore(unitData, context) < -0.6) score -= 4.8;
+  if (!fillsNeed && features.screens && features.cheap && beforeStructure.screens >= (before.minimums?.screens || 1)) score -= 3.2;
+  if (context.playstyle === "alphaStrike" && features.speed && !features.deepStrike && Math.max(weapons.shooting, weapons.antiTank, weapons.melee) < 0.45) score -= 4.2;
   if (isCharacterLike(unitData) && !isIndependentOperative(unitData, context.side) && !afterRoster.some((bodyguard) => bodyguard !== unitData && canLeadUnit(context.side, unitData, bodyguard))) score -= 5;
   if (isDedicatedTransport(unitData) && !transportableBaseUnits(context.side, unitData, roster).length) score -= 7;
   if (context.experience === "new" && complexityScore(unitData) >= 3 && !fillsCurrentStructuralNeed(unitData, before)) score -= 2.8;
@@ -4716,6 +7256,8 @@ function autoPickContext(side, baseUnits) {
     playstyle,
     profile,
     detachment: isEnemy ? state.enemyDetachment : state.detachment,
+    activeDetachments: activeDetachments(side),
+    detachmentStyles: activeDetachmentStyles(side),
     risk: isEnemy ? 6 : Number($("#risk").value),
     experience: isEnemy ? "mid" : $("#experience").value,
     needsWarlord: !baseUnits.some(canBeWarlord),
@@ -4737,7 +7279,7 @@ function autoPickValue(unitData, context) {
   const baseRating = unitData.ratings[context.profile] * 0.72;
   const planScore = playstyleScore(unitData, context.playstyle) * 1.55;
   const identityScore = archetypeIdentityScore(unitData, context) * 2.35;
-  const detachmentScore = unitData.styles.some((style) => context.detachment.styles.includes(style)) ? 1.4 : 0;
+  const detachmentScore = unitData.styles.some((style) => (context.detachmentStyles || context.detachment.styles || []).includes(style)) ? 1.4 : 0;
   const metaScore = context.isEnemy ? 0 : metaFit(unitData) * 0.9;
   const gapScore = listGapScore(unitData, context);
   const riskScore = riskFitScore(unitData, context.risk);
@@ -5114,6 +7656,7 @@ function evaluateList(units, context) {
   const matchupScore = evaluateMatchups(units, context);
   const parameterScore = evaluatePlayerParameters(units, context);
   const archetypeIdentityScoreValue = evaluateArchetypeIdentity(units, context);
+  const editionScore = evaluateEditionPlan(units, context);
   const fillScore = Math.min(totalPoints(units) / state.gameSize, 1) * 16;
 
   return (
@@ -5126,6 +7669,7 @@ function evaluateList(units, context) {
     matchupScore +
     parameterScore +
     archetypeIdentityScoreValue +
+    editionScore +
     fillScore +
     archetypeScore -
     penalizeGaps(units, context) -
@@ -5134,6 +7678,28 @@ function evaluateList(units, context) {
     penalizeComboDependence(units, context) -
     penalizeInvalidList(units, context)
   );
+}
+
+function evaluateEditionPlan(units, context) {
+  if (state.rulesEdition !== "11e" || !units.length) return 0;
+  const profile = armyProfile(units);
+  const roleCounts = units.reduce((counts, unitData) => {
+    const features = unitFeatures(unitData);
+    if (features.scoring || features.speed || features.deepStrike) counts.scoring += 1;
+    if (features.screens || features.infiltrate || features.boardControl) counts.screens += 1;
+    if (features.trading || features.cheap || features.pressure) counts.trading += 1;
+    return counts;
+  }, { scoring: 0, screens: 0, trading: 0 });
+  let score = 0;
+  score += Math.min(6, roleCounts.scoring * 0.9);
+  score += Math.min(5, roleCounts.screens * 0.75);
+  score += Math.min(4, roleCounts.trading * 0.6);
+  score += (profile.mobility + profile.control + profile.scoring - 165) / 18;
+  if (context.playstyle === "gunline" && profile.mobility < 44) score -= 2.5;
+  if (context.playstyle === "meleeRush" && profile.control < 44) score -= 1.6;
+  const enhancementCount = units.filter((unitData) => unitData.config?.enhancement).length;
+  if (currentEditionProfile().features.noStratStacking && enhancementCount >= 4) score -= 1.4;
+  return clampNumber(score, -5, 10);
 }
 
 function evaluateEpicHeroes(units, context) {
@@ -5147,7 +7713,7 @@ function evaluateEpicHeroes(units, context) {
 
 function evaluateEnhancements(units, context) {
   const carriers = units.filter(canCarryEnhancement);
-  const enhancementPlans = detachmentEnhancements(context.detachment);
+  const enhancementPlans = detachmentEnhancements(context.activeDetachments || context.detachment);
   if (!enhancementPlans.length) return 0;
   if (!carriers.length) return -4;
 
@@ -5173,7 +7739,7 @@ function evaluateEnhancements(units, context) {
 
 function enhancementCarrierScore(unitData, context) {
   if (!canCarryEnhancement(unitData)) return 0;
-  return detachmentEnhancements(context.detachment).reduce(
+  return detachmentEnhancements(context.activeDetachments || context.detachment).reduce(
     (best, enhancement) => Math.max(best, enhancementCarrierFit(unitData, enhancement, context, context.baseUnits || [])),
     0
   );
@@ -5184,6 +7750,9 @@ function canCarryEnhancement(unitData) {
 }
 
 function detachmentEnhancements(detachment) {
+  if (Array.isArray(detachment)) {
+    return [...new Map(detachment.flatMap((item) => detachmentEnhancements(item)).map((item) => [`${item.detachmentName}-${item.name}`, item])).values()];
+  }
   if (!detachment) return [];
   if (Array.isArray(detachment.enhancements) && detachment.enhancements.length) return detachment.enhancements;
   const styles = detachment.styles || [];
@@ -5452,32 +8021,36 @@ function unitFeatures(unitData) {
   ].join("|");
   if (unitFeatureCache.has(cacheKey)) return unitFeatureCache.get(cacheKey);
   const text = unitText(unitData);
+  const traitText = unitTraitText(unitData);
+  const traitHit = (needles) => featureHitIn(traitText, needles);
   const weaponProfile = unitWeaponFeatureScores(unitData);
   const cheap = unitData.points <= state.gameSize * 0.055 ? 1 : 0;
   const elite = unitData.points >= state.gameSize * 0.12 || isEpicHero(unitData) ? 1 : 0;
   const independent = isIndependentOperative(unitData) ? 1 : 0;
+  const fortification = unitData.section === "Fortification" || /\bfortification\b/i.test(text) ? 1 : 0;
   const features = {
-    speed: featureHit(unitData, ["mobility", "deep strike", "infiltrate", "scout", "jump", "bike", "mounted", "transport", "tempo", "venom", "raider", "reaver", "hellion", "scourge", "mandrake", "gargoyle", "warp spider", "swooping hawk", "piranha", "starweaver"]),
-    charge: featureHit(unitData, ["melee", "charge", "jump", "mounted", "deep strike", "assault", "wych", "genestealer", "berzerker", "eightbound", "squighog", "sanguinary", "death company", "hellion", "incubi"]),
-    melee: Math.max(weaponProfile.melee, featureHit(unitData, ["melee", "trading", "blade", "claw", "talon", "sword", "hammer", "fist", "incubi", "chosen", "eightbound", "wych", "hellion", "berserk", "beserk", "daemonette", "flayed", "skorpekh", "death company", "sanguinary"])),
-    shooting: Math.max(weaponProfile.shooting, featureHit(unitData, ["shooting", "fire support", "indirect", "gun", "rifle", "cannon", "launcher", "missile", "rocket", "bolter", "blaster", "lascannon", "heavy weapons", "destroyer", "doomsday", "hammerhead", "broadside", "exocrine", "desolator", "desolation"])),
-    antiTank: Math.max(weaponProfile.antiTank, featureHit(unitData, ["anti-tank", "melta", "lascannon", "bright lance", "railgun", "doomsday", "eradicator", "heavy weapons", "scourge", "lokhust", "void dragon", "hammerstrike", "ballistus", "krak", "missile", "rocket"])),
+    speed: traitHit(["mobility", "deep strike", "infiltrate", "scout", "jump", "bike", "mounted", "transport", "tempo", "venom", "raider", "reaver", "hellion", "scourge", "mandrake", "gargoyle", "warp spider", "swooping hawk", "piranha", "starweaver"]),
+    charge: traitHit(["melee", "charge", "jump", "mounted", "deep strike", "assault", "wych", "genestealer", "berzerker", "eightbound", "squighog", "sanguinary", "death company", "hellion", "incubi"]),
+    melee: Math.max(weaponProfile.melee, traitHit(["melee", "trading", "blade", "claw", "talon", "sword", "hammer", "fist", "incubi", "chosen", "eightbound", "wych", "hellion", "berserk", "beserk", "daemonette", "flayed", "skorpekh", "death company", "sanguinary"])),
+    shooting: Math.max(weaponProfile.shooting, traitHit(["shooting", "fire support", "indirect", "gunline", "destroyer", "doomsday", "hammerhead", "broadside", "exocrine", "desolator", "desolation"])),
+    antiTank: Math.max(weaponProfile.antiTank, traitHit(["anti-tank", "anti tank", "eradicator", "heavy weapons", "scourge", "lokhust", "void dragon", "hammerstrike", "ballistus"])),
     rangedAntiTank: weaponProfile.rangedAntiTank,
-    durability: featureHit(unitData, ["durable", "anchor", "vehicle", "monster", "terminator", "wraith", "custodian", "death guard", "c'tan", "ctan", "norn", "knight", "land raider", "monolith", "avatar"]),
-    anchor: featureHit(unitData, ["anchor", "durable", "terminator", "wraith", "custodian", "heavy", "fortress", "c'tan", "ctan", "norn", "land raider", "monolith"]),
-    scoring: Math.max(independent, featureHit(unitData, ["scoring", "objectives", "battleline", "mission"])),
-    screens: Math.max(independent, featureHit(unitData, ["screen", "scout", "infiltrate", "battleline", "nurglings", "cultist", "gretchin", "termagant", "hormagaunt", "neurogaunt", "ripper", "guardsmen", "kabalite"])),
-    trading: Math.max(independent, featureHit(unitData, ["trading", "threat", "cheap", "jump", "scout", "incubi", "mandrake", "chosen", "venom", "reaver", "hellion", "scourge", "flayed", "assault intercessor"])),
-    boardControl: featureHit(unitData, ["battleline", "screen", "swarm", "horde", "gaunt", "gant", "cultist", "guardsmen", "boyz", "gretchin", "neophyte", "kabalite", "daemonette"]),
-    deepStrike: featureHit(unitData, ["deep strike", "teleport", "warp", "jump", "reserve", "drop pod", "scourge", "mandrake", "terminator"]),
-    transport: isDedicatedTransport(unitData) ? 1 : featureHit(unitData, ["transport"]),
+    durability: traitHit(["durable", "anchor", "vehicle", "monster", "fortification", "terminator", "wraith", "custodian", "death guard", "c'tan", "ctan", "norn", "knight", "land raider", "monolith", "avatar"]),
+    anchor: traitHit(["anchor", "durable", "fortification", "terminator", "wraith", "custodian", "heavy", "fortress", "c'tan", "ctan", "norn", "land raider", "monolith"]),
+    scoring: Math.max(independent, traitHit(["scoring", "objectives", "battleline", "mission"])),
+    screens: Math.max(independent, traitHit(["screen", "scout", "infiltrate", "battleline", "nurglings", "cultist", "gretchin", "termagant", "hormagaunt", "neurogaunt", "ripper", "guardsmen", "kabalite"])),
+    trading: Math.max(independent, traitHit(["trading", "threat", "cheap", "jump", "incubi", "mandrake", "chosen", "venom", "reaver", "hellion", "scourge", "flayed", "assault intercessor"])),
+    boardControl: traitHit(["battleline", "screen", "swarm", "horde", "gaunt", "gant", "cultist", "guardsmen", "boyz", "gretchin", "neophyte", "kabalite", "daemonette"]),
+    deepStrike: traitHit(["deep strike", "teleport", "warp", "jump", "reserve", "drop pod", "scourge", "mandrake", "terminator"]),
+    transport: isDedicatedTransport(unitData) ? 1 : traitHit(["transport"]),
     independent,
-    monsterVehicle: unitData.section === "Vehicle" || unitData.section === "Monster" ? 1 : featureHit(unitData, ["vehicle", "monster", "knight", "ctan", "c'tan", "norn", "avatar", "daemon prince", "greater daemon"]),
-    buff: isCharacterLike(unitData) || featureHit(unitData, ["leader", "ancient", "apothecary", "lieutenant", "technomancer", "farseer"]) ? 1 : 0,
+    fortification,
+    monsterVehicle: fortification ? 0 : unitData.section === "Vehicle" || unitData.section === "Monster" ? 1 : traitHit(["vehicle", "monster", "knight", "ctan", "c'tan", "norn", "avatar", "daemon prince", "greater daemon"]),
+    buff: isCharacterLike(unitData) || traitHit(["leader", "ancient", "apothecary", "lieutenant", "technomancer", "farseer"]) ? 1 : 0,
     synergy: isCharacterLike(unitData) || isDedicatedTransport(unitData) ? 1 : 0,
-    pressure: featureHit(unitData, ["pressure", "threat", "melee", "mobility", "deep strike"]),
-    recovery: featureHit(unitData, ["necron", "reanimation", "death guard", "durable", "anchor"]),
-    indirect: Math.max(weaponProfile.indirect, featureHit(unitData, ["indirect", "artillery", "mortar", "biovore", "desolator", "desolation"])),
+    pressure: traitHit(["pressure", "threat", "melee", "mobility", "deep strike"]),
+    recovery: traitHit(["necron", "reanimation", "death guard", "durable", "anchor"]),
+    indirect: Math.max(weaponProfile.indirect, traitHit(["indirect", "artillery", "mortar", "biovore", "desolator", "desolation"])),
     cheap,
     elite,
   };
@@ -5487,7 +8060,7 @@ function unitFeatures(unitData) {
 
 function unitWeaponFeatureScores(unitData) {
   const detail = unitDetailForAny(unitData);
-  const weapons = detail?.wargear || [];
+  const weapons = effectiveWargear(detail || {}, unitData.config || {}, unitData);
   const ranged = weapons.filter((weapon) => normalizeName(weapon.type || weapon.range) !== "melee");
   const melee = weapons.filter((weapon) => normalizeName(weapon.type || weapon.range) === "melee");
   return {
@@ -5501,10 +8074,17 @@ function unitWeaponFeatureScores(unitData) {
 
 function weaponBucketScore(weapons, role) {
   if (!weapons.length) return 0;
-  const best = Math.max(...weapons.map((weapon) => weaponProfileScore(weapon, role)));
-  const profileDepth = Math.min(0.35, weapons.length * 0.08);
-  const floor = role === "shooting" ? 0.25 : 0;
-  return clamp01(floor + profileDepth + best * 0.65);
+  const weighted = weapons.map((weapon) => {
+    const count = Math.max(1, Number(weapon.count || 1));
+    return { score: weaponProfileScore(weapon, role), count };
+  });
+  const totalCount = weighted.reduce((sum, weapon) => sum + weapon.count, 0);
+  const average = weighted.reduce((sum, weapon) => sum + weapon.score * weapon.count, 0) / Math.max(1, totalCount);
+  const best = Math.max(...weighted.map((weapon) => weapon.score));
+  const bestCount = weighted.find((weapon) => weapon.score === best)?.count || 1;
+  const bestShare = bestCount / Math.max(1, totalCount);
+  const depth = Math.min(0.18, Math.log2(totalCount + 1) * 0.045);
+  return clamp01(average * 0.56 + best * (0.24 + bestShare * 0.16) + depth);
 }
 
 function weaponProfileScore(weapon, role) {
@@ -5555,7 +8135,10 @@ function clamp01(value) {
 }
 
 function featureHit(unitData, needles) {
-  const text = unitText(unitData);
+  return featureHitIn(unitText(unitData), needles);
+}
+
+function featureHitIn(text, needles) {
   return needles.some((needle) => text.includes(needle)) ? 1 : 0;
 }
 
@@ -5825,6 +8408,10 @@ function maxAutoPickCopies(unitData, context = {}) {
   if (isCharacterLike(unitData)) return 1;
   if (unitData.section === "Dedicated Transport") return 1;
   const playstyle = context.playstyle || "midrange";
+  const features = unitFeatures(unitData);
+  const weapons = unitWeaponFeatureScores(unitData);
+  const lowOutputScreen = features.screens && features.cheap && Math.max(weapons.shooting, weapons.antiTank, weapons.melee) < 0.45;
+  if (lowOutputScreen && !["horde", "mobilityTempo"].includes(playstyle)) return 1;
   const fit = archetypePlanFit(unitData, playstyle);
   const repeatFit = archetypeRepeatFit(unitData, playstyle);
   const weakFit = weakArchetypeFitThreshold(playstyle);
@@ -5843,6 +8430,7 @@ function maxAutoPickCopies(unitData, context = {}) {
 
 function canRepeatForArchetype(unitData, playstyle = "midrange") {
   const features = unitFeatures(unitData);
+  const weapons = unitWeaponFeatureScores(unitData);
   if (isCharacterLike(unitData) || isDedicatedTransport(unitData)) return false;
   if (playstyle === "gunline") {
     if (hasAnyText(unitData, ["jump pack", "vanguard veteran", "assault squad", "assault intercessor"]) && !hasAnyText(unitData, ["inceptor", "suppressor"])) return false;
@@ -5855,7 +8443,7 @@ function canRepeatForArchetype(unitData, playstyle = "midrange") {
   if (playstyle === "attrition") return features.durability || features.anchor || features.recovery;
   if (playstyle === "mobilityTempo") return features.speed || features.deepStrike || features.scoring || features.screens;
   if (playstyle === "meleeRush") return features.melee || features.charge || features.speed;
-  if (playstyle === "alphaStrike") return features.antiTank || features.shooting || features.deepStrike || features.speed || features.pressure;
+  if (playstyle === "alphaStrike") return features.antiTank || features.shooting || features.deepStrike || features.pressure || features.speed && Math.max(weapons.shooting, weapons.antiTank, weapons.melee) >= 0.45;
   if (playstyle === "trading") return features.trading || features.cheap || features.speed || features.scoring;
   if (playstyle === "horde") return features.cheap || features.boardControl || features.screens || features.scoring;
   return features.trading || features.scoring || features.antiTank || features.durability || features.shooting || features.melee;
@@ -6027,10 +8615,17 @@ function parseList(side) {
 
 function importRosterTextToSide(side, text) {
   const isEnemy = side === "enemy";
-  const meta = detectRosterMeta(text, isEnemy ? state.enemyFaction : state.faction);
+  let meta = detectRosterMeta(text, isEnemy ? state.enemyFaction : state.faction);
+  const parsed = parseRosterTextWithFactionFallback(text, meta.faction || (isEnemy ? state.enemyFaction : state.faction));
+  if (parsed.faction && (!meta.faction || parsed.faction.id !== meta.faction.id)) {
+    meta = {
+      faction: parsed.faction,
+      detachment: findDetachmentMention(text, parsed.faction) || parsed.faction.detachments[0],
+    };
+  }
   applyRosterMeta(side, meta);
   const faction = isEnemy ? state.enemyFaction : state.faction;
-  const result = { ...parseRosterText(text, faction), meta };
+  const result = { ...parsed.result, meta: { ...meta, faction } };
   result.units.forEach((unitData) => resolveImportedEnhancement(side, unitData));
   if (isEnemy) {
     state.enemyRoster = result.units;
@@ -6162,6 +8757,21 @@ function unitText(unitData) {
   return `${unitData.name} ${unitData.section || ""} ${unitData.tags.join(" ")} ${(unitData.styles || []).join(" ")} ${detailText}`.toLowerCase();
 }
 
+function unitTraitText(unitData) {
+  const detail = unitDetailForAny(unitData);
+  const detailText = [
+    detail.role,
+    detail.legend,
+    detail.loadout,
+    detail.transport,
+    ...(detail.composition || []),
+    ...(detail.keywords || []),
+    ...(detail.factionKeywords || []),
+    ...(detail.abilities || []).flatMap((ability) => [ability.name, ability.type, ability.description]),
+  ].filter(Boolean).join(" ");
+  return `${unitData.name} ${unitData.section || ""} ${(unitData.tags || []).join(" ")} ${(unitData.styles || []).join(" ")} ${detailText}`.toLowerCase();
+}
+
 function tagHits(text, needles) {
   return needles.filter((needle) => text.includes(needle)).length;
 }
@@ -6187,9 +8797,41 @@ function detectRosterMeta(text, currentFaction) {
     }
   }
 
+  const inferred = inferFactionFromRosterText(text);
+  if (!faction && inferred?.faction) faction = inferred.faction;
+  if (faction && inferred?.faction && inferred.score >= 18 && faction.id !== inferred.faction.id && !factionLine) faction = inferred.faction;
   if (!faction && currentFaction) faction = currentFaction;
   if (faction && !detachment) detachment = findDetachmentMention(detachmentLine || text, faction);
   return { faction, detachment };
+}
+
+function inferFactionFromRosterText(text) {
+  const scored = factions
+    .map((faction) => ({ faction, ...scoreFactionRosterFit(text, faction) }))
+    .filter((item) => item.matches >= 2 || item.score >= 14)
+    .sort((a, b) => b.score - a.score || b.matches - a.matches || b.pointsMatched - a.pointsMatched);
+  if (!scored.length) return null;
+  const [best, second] = scored;
+  if (second && best.score - second.score < 3 && best.matches === second.matches) return null;
+  return best;
+}
+
+function scoreFactionRosterFit(text, faction) {
+  const seen = new Set();
+  let matches = 0;
+  let pointsMatched = 0;
+  let score = 0;
+  text.split(/\r?\n/).forEach((rawLine) => {
+    const parsed = parsePointLine(rawLine.trim(), faction);
+    if (!parsed.unit) return;
+    const key = parsed.unit.name;
+    seen.add(key);
+    matches += 1;
+    if (parsed.hasPoints) pointsMatched += 1;
+    score += 4 + (pointsCompatible(parsed.unit, parsed.unit.points) ? 0.5 : 0);
+  });
+  score += seen.size * 1.7 + Math.min(8, pointsMatched * 0.8);
+  return { score, matches, unique: seen.size, pointsMatched };
 }
 
 function applyRosterMeta(side, meta) {
@@ -6227,20 +8869,30 @@ function factionAliases() {
   });
   const extras = {
     spaceMarines: [["adeptus astartes", 5], ["marines espaciales", 18]],
+    adeptusCustodes: [["custodes", 18], ["adeptus custodes", 20]],
+    adeptusMechanicus: [["admech", 18], ["mechanicus", 14], ["adeptus mechanicus", 20]],
     astraMilitarum: [["imperial guard", 18], ["guardia imperial", 18]],
     adeptaSororitas: [["sisters of battle", 18], ["hermanas de batalla", 18]],
-    aeldari: [["craftworlds", 18], ["asuryani", 18]],
+    aeldari: [["craftworlds", 18], ["asuryani", 18], ["eldar", 12]],
     tAuEmpire: [["tau empire", 18], ["tau", 12]],
-    chaosSpaceMarines: [["heretic astartes", 5]],
+    chaosSpaceMarines: [["heretic astartes", 5], ["csm", 16], ["chaos marines", 16]],
     drukhari: [["dark eldar", 18]],
     leaguesOfVotann: [["votann", 18]],
+    imperialKnights: [["knights", 8], ["caballeros imperiales", 18]],
+    chaosKnights: [["chaos knights", 20], ["caballeros del caos", 18]],
+    greyKnights: [["grey knights", 20], ["caballeros grises", 18]],
     bloodAngels: [["angeles sangrientos", 24]],
     darkAngels: [["angeles oscuros", 24]],
     spaceWolves: [["lobos espaciales", 24]],
     blackTemplars: [["templarios negros", 24]],
     tyranids: [["tiranidos", 18]],
     necrons: [["necrones", 18]],
+    orks: [["orcos", 18]],
+    genestealerCults: [["gsc", 18], ["cultos genestealer", 18]],
     chaosDaemons: [["demonios del caos", 18]],
+    deathGuard: [["guardia de la muerte", 18]],
+    thousandSons: [["mil hijos", 18], ["thousand sons", 20]],
+    worldEaters: [["devoradores de mundos", 18]],
     emperorsChildren: [["hijos del emperador", 18]],
   };
   factions.forEach((faction) => {
@@ -6280,18 +8932,72 @@ function parseRosterText(text, faction) {
   };
 }
 
+function parseRosterTextWithFactionFallback(text, preferredFaction = null) {
+  const primary = preferredFaction ? parseRosterText(text, preferredFaction) : emptyRosterParse();
+  const best = inferBestRosterParse(text, preferredFaction);
+  if (!preferredFaction && best) return { faction: best.faction, result: best.result };
+  if (best && shouldUseFactionFallback(best.result, primary, best.faction, preferredFaction)) {
+    return { faction: best.faction, result: best.result };
+  }
+  return { faction: preferredFaction || best?.faction || null, result: preferredFaction ? primary : best?.result || emptyRosterParse() };
+}
+
+function inferBestRosterParse(text, preferredFaction = null) {
+  const candidates = factions
+    .map((faction) => {
+      const result = parseRosterText(text, faction);
+      return { faction, result, score: rosterParseScore(result) + (preferredFaction?.id === faction.id ? 1.5 : 0) };
+    })
+    .filter((candidate) => candidate.result.units.length >= 2 || candidate.score >= 12)
+    .sort((a, b) => b.score - a.score || b.result.units.length - a.result.units.length);
+  if (!candidates.length) return null;
+  const [best, second] = candidates;
+  if (!preferredFaction && second && best.score - second.score < 3 && best.result.units.length === second.result.units.length) return null;
+  return best;
+}
+
+function emptyRosterParse() {
+  return { units: [], ignored: [], knownLines: 0, unknownLines: 0 };
+}
+
+function rosterParseScore(result) {
+  const uniqueUnits = new Set((result.units || []).map((unitData) => unitData.name)).size;
+  const pointTotal = totalPoints(result.units || []);
+  const pointBonus = pointTotal >= 450 ? 4 : pointTotal >= 250 ? 2 : 0;
+  const ignoredPenalty = Math.min(12, (result.unknownLines || 0) * 0.9);
+  return (result.knownLines || 0) * 4 + uniqueUnits * 2 + pointBonus - ignoredPenalty;
+}
+
+function shouldUseFactionFallback(candidate, primary, candidateFaction, preferredFaction) {
+  if (!candidateFaction || candidateFaction.id === preferredFaction?.id) return false;
+  const candidateScore = rosterParseScore(candidate);
+  const primaryScore = rosterParseScore(primary);
+  if (!primary.units.length && candidate.units.length) return true;
+  if (candidate.units.length >= primary.units.length + 2) return true;
+  return candidateScore >= primaryScore + 6;
+}
+
 function parsePointLines(text, faction) {
   const result = { units: [], ignored: [], knownLines: 0, unknownLines: 0 };
   let currentUnit = null;
+  let currentSection = "";
   const enhancementRefs = [];
   text.split(/\r?\n/).forEach((rawLine) => {
     const line = rawLine.trim();
     if (!line) return;
+    const sectionHeader = rosterSectionHeader(line);
+    if (sectionHeader) {
+      currentSection = sectionHeader;
+      currentUnit = null;
+      return;
+    }
     const enhancementRef = parseEnhancementReference(line);
     if (enhancementRef) enhancementRefs.push(enhancementRef);
     const parsed = parsePointLine(line, faction);
     if (parsed.unit) {
       currentUnit = parsed.unit;
+      const importedSection = parsed.sectionHint || currentSection;
+      if (["Allied Units", "Legends"].includes(importedSection)) currentUnit.section = importedSection;
       currentUnit.importLabel = parsed.label || "";
       applyPendingEnhancementRefs(currentUnit, parsed.label, enhancementRefs);
       result.units.push(parsed.unit);
@@ -6313,15 +9019,45 @@ function parsePointLines(text, faction) {
   return result;
 }
 
+function rosterSectionHeader(line = "") {
+  const text = normalizeName(line.replace(/[:]+$/g, ""));
+  const headers = {
+    "epic heroes": "Epic Hero",
+    "epic hero": "Epic Hero",
+    characters: "Character",
+    character: "Character",
+    battleline: "Battleline",
+    "dedicated transports": "Dedicated Transport",
+    "dedicated transport": "Dedicated Transport",
+    fortifications: "Fortification",
+    fortification: "Fortification",
+    infantry: "Infantry",
+    mounted: "Mounted",
+    monsters: "Monster",
+    monster: "Monster",
+    vehicles: "Vehicle",
+    vehicle: "Vehicle",
+    "allied units": "Allied Units",
+    "allied unit": "Allied Units",
+    allies: "Allied Units",
+    legends: "Legends",
+    legend: "Legends",
+    "other datasheets": "Other",
+  };
+  return headers[text] || "";
+}
+
 function parsePointLine(line, faction) {
   if (shouldIgnoreRosterLine(line)) return { unit: null, hasPoints: false };
   const pointMatch = line.match(/(?:^|\D)(\d{1,4})\s*(?:pts?|points?|puntos)\b/i);
   if (!pointMatch) return { unit: null, hasPoints: false };
   const points = Number(pointMatch[1]);
   if (!Number.isFinite(points) || points <= 0) return { unit: null, hasPoints: true, reason: compactLine(line) };
+  const inlineSectionMatch = line.match(/^\s*(char|epic hero|character|battleline|infantry|vehicle|mounted|monster|dedicated transport|fortification|other datasheets|allied units|legends?)\s*\d*\s*:/i);
+  const sectionHint = inlineSectionMatch ? rosterSectionHeader(inlineSectionMatch[1]) : "";
 
   const cleaned = line
-    .replace(/^\s*(?:char|epic hero|character|battleline|infantry|vehicle|mounted|monster|dedicated transport|other datasheets|allied units)\s*\d*\s*:\s*/i, "")
+    .replace(/^\s*(?:char|epic hero|character|battleline|infantry|vehicle|mounted|monster|dedicated transport|fortification|other datasheets|allied units|legends?)\s*\d*\s*:\s*/i, "")
     .replace(/^\s*\d+\s*x\s+/i, "")
     .replace(/^\s*x\s*\d+\s+/i, "")
     .replace(/^\s*\d+\.\s+/, "")
@@ -6351,10 +9087,11 @@ function parsePointLine(line, faction) {
       }, "imported"),
       hasPoints: true,
       label: unitImportLabel(line),
+      sectionHint,
     };
   }
 
-  return { unit: null, hasPoints: true, reason: cleaned };
+  return { unit: null, hasPoints: true, reason: cleaned, sectionHint };
 }
 
 function parseImportedWargearLine(line, unitData, faction) {
@@ -6582,7 +9319,7 @@ function parseNameOnlyLines(text, faction) {
     .filter((line) => line && !shouldIgnoreRosterLine(line))
     .forEach((line) => {
       const cleaned = line
-        .replace(/^\s*(?:char|epic hero|character|battleline|infantry|vehicle|mounted|monster|dedicated transport|other datasheets|allied units)\s*\d*\s*:\s*/i, "")
+        .replace(/^\s*(?:char|epic hero|character|battleline|infantry|vehicle|mounted|monster|dedicated transport|fortification|other datasheets|allied units|legends?)\s*\d*\s*:\s*/i, "")
         .replace(/^\s*\d+\s*x\s+/i, "")
         .replace(/^[+\-*\s]+/, "")
         .trim();
@@ -7606,26 +10343,60 @@ function compactLine(line) {
 }
 
 function bestUnitMatch(name, faction, points = null) {
-  const normalized = normalizeName(name);
+  const normalized = normalizeRosterUnitName(name);
   if (!normalized) return null;
-  const exact = faction.units.find((unitData) => normalizeName(unitData.name) === normalized);
+  const exact = faction.units.find((unitData) => normalizeRosterUnitName(unitData.name) === normalized);
   if (exact) return exact;
   const alias = faction.units.find((unitData) => unitNameAliases(unitData.name).includes(normalized));
   if (alias) return alias;
   const matches = [...faction.units]
     .map((unitData) => {
-      const unitName = normalizeName(unitData.name);
+      const unitName = normalizeRosterUnitName(unitData.name);
       const aliases = unitNameAliases(unitData.name);
       const nameHit = normalized.includes(unitName) || unitName.includes(normalized);
       const aliasHit = aliases.some((aliasName) => normalized.includes(aliasName) || aliasName.includes(normalized));
-      if (!nameHit && !aliasHit) return null;
+      const tokenScore = unitTokenSimilarity(normalized, unitName);
+      const aliasScore = aliases.reduce((best, aliasName) => Math.max(best, unitTokenSimilarity(normalized, aliasName)), 0);
       const lengthScore = Math.min(unitName.length, normalized.length) / Math.max(unitName.length, normalized.length);
-      const pointScore = pointsCompatible(unitData, points) ? 0.35 : 0;
-      return { unitData, score: lengthScore + pointScore + (aliasHit ? 0.12 : 0) };
+      const pointScore = pointsCompatible(unitData, points) ? 0.18 : 0;
+      const score = Math.max(nameHit ? 0.72 : 0, aliasHit ? 0.78 : 0, tokenScore, aliasScore) + lengthScore * 0.12 + pointScore;
+      const threshold = pointsCompatible(unitData, points) ? 0.62 : 0.74;
+      if (score < threshold) return null;
+      return { unitData, score };
     })
     .filter(Boolean)
     .sort((a, b) => b.score - a.score || normalizeName(b.unitData.name).length - normalizeName(a.unitData.name).length);
   return matches[0]?.unitData || null;
+}
+
+function normalizeRosterUnitName(value = "") {
+  return normalizeName(value)
+    .replace(/\b(with|w)\b/g, " ")
+    .replace(/\bunit\s*\d+\b/g, " ")
+    .replace(/\bchar\s*\d+\b/g, " ")
+    .replace(/\bcharacter\s*\d+\b/g, " ")
+    .replace(/\bmodels?\b/g, " ")
+    .replace(/\barmed\b|\bequipped\b|\bweapons?\b|\bheavy weapons?\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function unitTokenSimilarity(inputName, unitName) {
+  const inputTokens = unitMatchTokens(inputName);
+  const unitTokens = unitMatchTokens(unitName);
+  if (!inputTokens.length || !unitTokens.length) return 0;
+  const common = unitTokens.filter((token) => inputTokens.includes(token)).length;
+  const coverage = common / unitTokens.length;
+  const noisePenalty = Math.max(0, inputTokens.length - unitTokens.length - 3) * 0.025;
+  const orderBonus = inputName.includes(unitName) || unitName.includes(inputName) ? 0.18 : 0;
+  return Math.max(0, coverage + orderBonus - noisePenalty);
+}
+
+function unitMatchTokens(value = "") {
+  return normalizeRosterUnitName(value)
+    .split(" ")
+    .map((token) => singularWeaponWord(token))
+    .filter((token) => token.length > 1 && !["the", "and", "of", "de", "la", "el", "los", "las", "x"].includes(token));
 }
 
 function pointsCompatible(unitData, points) {
@@ -7635,9 +10406,12 @@ function pointsCompatible(unitData, points) {
 }
 
 function unitNameAliases(name = "") {
-  const normalized = normalizeName(name);
+  const normalized = normalizeRosterUnitName(name);
   const aliases = new Set();
   if (normalized.endsWith(" squad")) aliases.add(normalized.replace(/\s+squad$/, ""));
+  if (normalized.endsWith(" team")) aliases.add(normalized.replace(/\s+team$/, ""));
+  if (normalized.endsWith(" mob")) aliases.add(normalized.replace(/\s+mob$/, ""));
+  aliases.add(singularWeaponWord(normalized));
   if (normalized === "desolation squad") {
     aliases.add("desolators");
     aliases.add("desolator squad");
@@ -7648,11 +10422,20 @@ function unitNameAliases(name = "") {
     aliases.add("assault terminator squad");
     aliases.add("assault terminator");
   }
+  if (normalized.includes("ctan shard")) aliases.add(normalized.replace("ctan shard of the", "ctan"));
+  if (normalized === "scourges") aliases.add("scourge");
   return [...aliases];
 }
 
 function normalizeName(value) {
-  return String(value || "").toLowerCase().replace(/['\u2019]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['\u2019]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function inferTags(line) {
@@ -7689,17 +10472,58 @@ function validateRoster(side) {
   const units = isEnemy ? state.enemyRoster : state.roster;
   const points = totalPoints(units);
   const issues = [];
+  const faction = currentFaction(side);
+  const addIssue = (severity, title, message, location = "", indexes = [], hint = "") => {
+    issues.push({ severity, title, message, location, indexes, hint });
+  };
 
   if (!units.length) return { units, issues };
 
   if (points > state.gameSize) {
-    issues.push({
-      severity: "error",
-      title: "Exceso de puntos",
-      message: `La lista tiene ${points} pts y el limite seleccionado es ${state.gameSize} pts.`,
-      location: isEnemy ? "contador de puntos rival" : "contador de puntos principal",
-    });
+    addIssue(
+      "error",
+      "Exceso de puntos",
+      `La lista tiene ${points} pts y el limite seleccionado es ${state.gameSize} pts.`,
+      isEnemy ? "contador de puntos rival" : "contador de puntos principal"
+    );
+  } else if (points < state.gameSize * 0.92) {
+    addIssue(
+      "warning",
+      "Lista muy por debajo del limite",
+      `La lista usa ${points} de ${state.gameSize} pts. Puede ser legal, pero normalmente deja demasiado valor fuera de mesa.`,
+      isEnemy ? "contador de puntos rival" : "contador de puntos principal"
+    );
   }
+
+  if (!activeDetachments(side).length) {
+    addIssue(
+      "error",
+      "Sin detachment",
+      "No hay detachment seleccionado para esta lista.",
+      isEnemy ? "detachment rival" : "detachment principal"
+    );
+  }
+
+  if (state.rulesEdition === "11e") {
+    if (detachmentPointTotal(side) > detachmentPointBudget()) {
+      addIssue(
+        "error",
+        "Exceso de Detachment Points",
+        `La combinacion de detachments usa ${detachmentPointTotal(side)} DP y el limite actual es ${detachmentPointBudget()} DP.`,
+        isEnemy ? "detachments rivales 11va" : "detachments 11va"
+      );
+    }
+    if (activeDetachments(side).length > 1) {
+      addIssue(
+        "warning",
+        "Varios detachments activos",
+        "La lista usa mas de un detachment. Es valido en modo 11va si respeta DP, pero revisa que enhancements, estratagemas y restricciones de cada detachment correspondan a las unidades que planeas usar.",
+        isEnemy ? "detachments rivales 11va" : "detachments 11va"
+      );
+    }
+  }
+
+  units.forEach((unitData, index) => validateRosterUnitBasics(side, unitData, index, addIssue));
 
   const eligibleWarlordIndexes = units
     .map((unitData, index) => ({ unitData, index }))
@@ -7711,63 +10535,77 @@ function validateRoster(side) {
     .map(({ index }) => index);
 
   if (!eligibleWarlordIndexes.length) {
-    issues.push({
-      severity: "error",
-      title: "Falta warlord",
-      message: "No hay ningun Character, Epic Hero o lider que pueda funcionar como warlord.",
-      location: isEnemy ? "lista enemiga" : "tu lista",
-    });
+    addIssue(
+      "error",
+      "Falta warlord",
+      "No hay ningun Character, Epic Hero o lider que pueda funcionar como warlord.",
+      isEnemy ? "lista enemiga" : "tu lista"
+    );
   } else if (!selectedWarlordIndexes.length) {
-    issues.push({
-      severity: "error",
-      title: "Warlord no seleccionado",
-      message: "Hay personajes elegibles, pero ninguno esta marcado como warlord. Abre Configurar en un Character o Epic Hero y marca Warlord.",
-      location: isEnemy ? "lista enemiga" : "tu lista",
-      indexes: eligibleWarlordIndexes,
-    });
+    addIssue(
+      "error",
+      "Warlord no seleccionado",
+      "Hay personajes elegibles, pero ninguno esta marcado como warlord. Abre Configurar en un Character o Epic Hero y marca Warlord.",
+      isEnemy ? "lista enemiga" : "tu lista",
+      eligibleWarlordIndexes
+    );
   } else if (selectedWarlordIndexes.length > 1) {
-    issues.push({
-      severity: "error",
-      title: "Demasiados warlords",
-      message: "Solo una unidad puede estar marcada como warlord.",
-      location: selectedWarlordIndexes.map((index) => `entrada ${index + 1}`).join(", "),
-      indexes: selectedWarlordIndexes,
-    });
+    addIssue(
+      "error",
+      "Demasiados warlords",
+      "Solo una unidad puede estar marcada como warlord.",
+      selectedWarlordIndexes.map((index) => `entrada ${index + 1}`).join(", "),
+      selectedWarlordIndexes
+    );
   }
 
   selectedWarlordIndexes.forEach((index) => {
     if (!canBeWarlord(units[index])) {
-      issues.push({
-        severity: "error",
-        title: "Warlord invalido",
-        message: `${units[index].name} no puede ser warlord.`,
-        location: `entrada ${index + 1}`,
-        indexes: [index],
-      });
+      addIssue(
+        "error",
+        "Warlord invalido",
+        `${units[index].name} no puede ser warlord.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
     }
   });
 
+  const enhancementIndexes = units
+    .map((unitData, index) => ({ unitData, index }))
+    .filter(({ unitData }) => unitData.config?.enhancement)
+    .map(({ index }) => index);
+  if (enhancementIndexes.length > 3) {
+    addIssue(
+      "error",
+      "Demasiados enhancements",
+      `La lista tiene ${enhancementIndexes.length} enhancements. El limite normal de armado es 3.`,
+      enhancementIndexes.map((index) => `entrada ${index + 1}`).join(", "),
+      enhancementIndexes
+    );
+  }
+
   const enhancementMap = new Map();
+  const legalNames = new Set(availableEnhancements(side).map((enhancement) => enhancement.name));
   units.forEach((unitData, index) => {
     if (!unitData.config?.enhancement) return;
     if (!canCarryEnhancement(unitData)) {
-      issues.push({
-        severity: "error",
-        title: "Enhancement invalido",
-        message: `${unitData.name} no puede llevar enhancements.`,
-        location: `entrada ${index + 1}`,
-        indexes: [index],
-      });
+      addIssue(
+        "error",
+        "Enhancement invalido",
+        `${unitData.name} no puede llevar enhancements. Solo personajes no Epic Hero pueden cargar enhancements.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
     }
-    const legalNames = new Set(availableEnhancements(side).map((enhancement) => enhancement.name));
     if (!legalNames.has(unitData.config.enhancement)) {
-      issues.push({
-        severity: "error",
-        title: "Enhancement fuera del detachment",
-        message: `${unitData.config.enhancement} no pertenece al detachment seleccionado.`,
-        location: `entrada ${index + 1}`,
-        indexes: [index],
-      });
+      addIssue(
+        "error",
+        "Enhancement fuera del detachment",
+        `${unitData.config.enhancement} no pertenece a los detachments activos.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
     }
     const key = normalizeName(unitData.config.enhancement);
     if (!enhancementMap.has(key)) enhancementMap.set(key, []);
@@ -7776,13 +10614,13 @@ function validateRoster(side) {
 
   enhancementMap.forEach((indexes, key) => {
     if (indexes.length <= 1) return;
-    issues.push({
-      severity: "error",
-      title: "Enhancement duplicado",
-      message: "Cada enhancement solo puede elegirse una vez.",
-      location: indexes.map((index) => `entrada ${index + 1}`).join(", "),
-      indexes,
-    });
+    addIssue(
+      "error",
+      "Enhancement duplicado",
+      "Cada enhancement solo puede elegirse una vez.",
+      indexes.map((index) => `entrada ${index + 1}`).join(", "),
+      indexes
+    );
   });
 
   const grouped = new Map();
@@ -7795,20 +10633,243 @@ function validateRoster(side) {
     const limit = datasheetLimit(entries[0].unitData);
     if (entries.length <= limit) return;
     const locations = entries.map((entry) => entry.index);
-    issues.push({
-      severity: "error",
-      title: "Demasiadas copias",
-      message: `${name} aparece ${entries.length} veces; el limite para esta categoria es ${limit}.`,
-      location: locations.map((index) => `entrada ${index + 1}`).join(", "),
-      indexes: locations,
-    });
+    addIssue(
+      "error",
+      "Demasiadas copias",
+      `${name} aparece ${entries.length} veces; el limite para esta categoria es ${limit}.`,
+      locations.map((index) => `entrada ${index + 1}`).join(", "),
+      locations
+    );
   });
+
+  validateLegendaryDuplicates(units, addIssue);
+  validateLeaderAttachments(side, units, addIssue);
+  validateTransportLegality(side, units, addIssue);
+  validateSpecialCategories(units, addIssue);
 
   return { units, issues };
 }
 
+function validateRosterUnitBasics(side, unitData, index, addIssue) {
+  const detail = unitDetailFor(side, unitData);
+  const section = dataAuditCanonicalSection(unitData.section || detail.role || "");
+  const total = unitTotalPoints(unitData);
+  if (!Number.isFinite(total) || total <= 0) {
+    addIssue(
+      "error",
+      "Unidad sin puntos validos",
+      `${unitData.name} no tiene un valor de puntos positivo. Puede romper conteo, exportacion y legalidad.`,
+      `entrada ${index + 1}`,
+      [index]
+    );
+  }
+  if (!section || section === "Other") {
+    addIssue(
+      "warning",
+      "Categoria incompleta",
+      `${unitData.name} esta clasificada como ${unitData.section || "sin categoria"}. Revisa si debe ser Character, Battleline, Vehicle, Fortification, Allied Units o Legends.`,
+      `entrada ${index + 1}`,
+      [index]
+    );
+  }
+  if (!unitExistsInCurrentFaction(side, unitData) && !isExternalCategory(unitData)) {
+    addIssue(
+      "warning",
+      "Unidad no encontrada en la faccion",
+      `${unitData.name} no aparece en la base de datos principal de ${currentFaction(side)?.name || "esta faccion"}. Puede ser alias, unidad aliada o importacion que requiere revision.`,
+      `entrada ${index + 1}`,
+      [index]
+    );
+  }
+  validateModelCountForUnit(unitData, detail, index, addIssue);
+}
+
+function validateModelCountForUnit(unitData, detail, index, addIssue) {
+  const sizes = unitSizeOptions(detail);
+  const rawConfigured = Number(unitData.config?.modelCount || compositionModelRange(detail).min);
+  const configured = configuredModelCount(unitData, detail, unitData.config || {});
+  if (sizes.length > 1 && (!sizes.includes(rawConfigured) || rawConfigured !== configured)) {
+    addIssue(
+      "error",
+      "Tamano de unidad invalido",
+      `${unitData.name} esta configurada con ${rawConfigured} modelos, pero las opciones cargadas son ${sizes.join(", ")}.`,
+      `entrada ${index + 1}`,
+      [index]
+    );
+  }
+  if (sizes.length > 1 && !Number.isFinite(unitPointsForModelCount(unitData, detail, configured))) {
+    addIssue(
+      "error",
+      "Puntos por tamano no disponibles",
+      `${unitData.name} no tiene puntos calculables para ${configured} modelos.`,
+      `entrada ${index + 1}`,
+      [index]
+    );
+  }
+}
+
+function unitExistsInCurrentFaction(side, unitData) {
+  const faction = currentFaction(side);
+  const key = normalizeName(unitData.name);
+  return Boolean(
+    faction?.units?.some((unit) => normalizeName(unit.name) === key) ||
+    unitDetails[faction?.id]?.[key]
+  );
+}
+
+function isExternalCategory(unitData) {
+  return ["Allied Units", "Legends"].includes(unitData.section);
+}
+
+function validateLegendaryDuplicates(units, addIssue) {
+  const named = new Map();
+  units.forEach((unitData, index) => {
+    const key = legendaryHeroKey(unitData);
+    if (!key || !isEpicHero(unitData)) return;
+    if (!named.has(key)) named.set(key, []);
+    named.get(key).push(index);
+  });
+  named.forEach((indexes) => {
+    if (indexes.length <= 1) return;
+    addIssue(
+      "error",
+      "Epic Hero repetido",
+      "Los Epic Heroes son unicos; no puedes incluir el mismo personaje mas de una vez.",
+      indexes.map((index) => `entrada ${index + 1}`).join(", "),
+      indexes
+    );
+  });
+}
+
+function validateLeaderAttachments(side, units, addIssue) {
+  const idToIndex = new Map(units.map((unitData, index) => [unitData.instanceId, index]));
+  const assignments = new Map();
+  units.forEach((bodyguard, index) => {
+    const leaderRef = bodyguard.config?.leaderRef;
+    if (!leaderRef) return;
+    const leaderIndex = idToIndex.get(leaderRef);
+    const leader = units[leaderIndex];
+    if (!leader) {
+      addIssue(
+        "error",
+        "Lider no encontrado",
+        `${bodyguard.name} tiene un lider asignado que ya no existe en la lista.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
+      return;
+    }
+    if (!canLeadUnit(side, leader, bodyguard)) {
+      addIssue(
+        "error",
+        "Lider incompatible",
+        `${leader.name} no puede liderar a ${bodyguard.name} segun las opciones cargadas.`,
+        `entradas ${leaderIndex + 1} y ${index + 1}`,
+        [leaderIndex, index]
+      );
+    }
+    if (!assignments.has(leaderRef)) assignments.set(leaderRef, []);
+    assignments.get(leaderRef).push(index);
+  });
+
+  assignments.forEach((indexes, leaderRef) => {
+    if (indexes.length <= 1) return;
+    const leaderIndex = idToIndex.get(leaderRef);
+    addIssue(
+      "error",
+      "Lider asignado a varias unidades",
+      "Un mismo lider no puede estar asignado a mas de una unidad Bodyguard.",
+      indexes.map((index) => `entrada ${index + 1}`).join(", "),
+      [leaderIndex, ...indexes].filter((index) => Number.isInteger(index))
+    );
+  });
+
+  units.forEach((leader, index) => {
+    if (!isCharacterLike(leader) || isIndependentOperative(leader, side) || !hasLeaderTargets(side, leader)) return;
+    const hasCompatibleBodyguard = units.some((bodyguard) => bodyguard !== leader && canLeadUnit(side, leader, bodyguard));
+    const isAssigned = units.some((bodyguard) => bodyguard.config?.leaderRef === leader.instanceId);
+    if (hasCompatibleBodyguard && !isAssigned) {
+      addIssue(
+        "warning",
+        "Lider sin unidad asignada",
+        `${leader.name} puede liderar unidades de la lista, pero no tiene Bodyguard asignado. Puede ser intencional, aunque normalmente reduce su valor.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
+    } else if (!hasCompatibleBodyguard) {
+      addIssue(
+        "warning",
+        "Personaje sin unidad compatible",
+        `${leader.name} tiene reglas de lider, pero no hay una unidad compatible en la lista.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
+    }
+  });
+}
+
+function validateTransportLegality(side, units, addIssue) {
+  const transports = units.map((unitData, index) => ({ unitData, index })).filter(({ unitData }) => isDedicatedTransport(unitData));
+  if (!transports.length) return;
+  const usefulSlots = maxUsefulTransportSlots(units);
+  if (transports.length > usefulSlots) {
+    addIssue(
+      "warning",
+      "Transportes sin suficientes pasajeros",
+      `La lista tiene ${transports.length} Dedicated Transport y solo ${usefulSlots} parecen tener pasajeros utiles. Puede ser legal, pero varios transportes podrian empezar sin plan real.`,
+      transports.map(({ index }) => `entrada ${index + 1}`).join(", "),
+      transports.map(({ index }) => index)
+    );
+  }
+  transports.forEach(({ unitData, index }) => {
+    const passengers = transportableBaseUnits(side, unitData, units).filter((passenger) => passenger !== unitData);
+    if (!passengers.length) {
+      addIssue(
+        "warning",
+        "Transporte sin pasajeros compatibles",
+        `${unitData.name} no tiene unidades compatibles obvias para transportar en esta lista.`,
+        `entrada ${index + 1}`,
+        [index]
+      );
+    }
+  });
+}
+
+function validateSpecialCategories(units, addIssue) {
+  const legends = units.map((unitData, index) => ({ unitData, index })).filter(({ unitData }) => unitData.section === "Legends");
+  const allied = units.map((unitData, index) => ({ unitData, index })).filter(({ unitData }) => unitData.section === "Allied Units");
+  const fortifications = units.map((unitData, index) => ({ unitData, index })).filter(({ unitData }) => unitData.section === "Fortification");
+  if (legends.length) {
+    addIssue(
+      "warning",
+      "Legends en la lista",
+      "La lista incluye unidades Legends. Suelen ser validas solo si el evento o grupo lo permite.",
+      legends.map(({ index }) => `entrada ${index + 1}`).join(", "),
+      legends.map(({ index }) => index)
+    );
+  }
+  if (allied.length) {
+    addIssue(
+      "warning",
+      "Allied Units detectadas",
+      "La lista incluye unidades aliadas. Revisa el limite y las restricciones especificas de ally allowance para tu faccion/evento.",
+      allied.map(({ index }) => `entrada ${index + 1}`).join(", "),
+      allied.map(({ index }) => index)
+    );
+  }
+  if (fortifications.length) {
+    addIssue(
+      "warning",
+      "Fortifications detectadas",
+      "La lista incluye Fortifications. Revisa restricciones de evento, despliegue y si el terreno/layout permite colocarlas correctamente.",
+      fortifications.map(({ index }) => `entrada ${index + 1}`).join(", "),
+      fortifications.map(({ index }) => index)
+    );
+  }
+}
+
 function canBeWarlord(unitData) {
-  return unitData.section === "Character" || isEpicHero(unitData) || unitData.tags.includes("leader");
+  return unitData.section === "Character" || isEpicHero(unitData) || (unitData.tags || []).includes("leader");
 }
 
 function datasheetLimit(unitData) {
@@ -7832,16 +10893,20 @@ function calculateScores(side) {
   const isEnemy = side === "enemy";
   const units = isEnemy ? state.enemyRoster : state.roster;
   const detachment = isEnemy ? state.enemyDetachment : state.detachment;
+  const detachments = activeDetachments(side);
   const playstyle = isEnemy ? $("#enemyStyle").value : $("#playstyle").value;
   if (!units.length) return { competitive: 0, casual: 0, narrative: 0 };
 
   const base = averageRatings(units);
   const legacyStyles = archetypeLegacyStyles(playstyle);
   const synergy = units.filter((unitData) => legacyStyles.some((style) => unitData.styles.includes(style))).length / units.length;
-  const detachmentScore = detachment.score / 10;
+  const detachmentScore = detachments.length
+    ? detachments.reduce((sum, item) => sum + Number(item.score || detachment.score || 6) / 10, 0) / detachments.length
+    : detachment.score / 10;
   const enhancementScore = Math.max(0, evaluateEnhancements(units, {
     side,
     detachment,
+    activeDetachments: detachments,
     baseUnits: units,
     playstyle,
     profile: isEnemy ? "competitive" : state.profile,
@@ -7852,12 +10917,25 @@ function calculateScores(side) {
   const variety = new Set(units.map((unitData) => unitData.name)).size / units.length;
   const historyScore = isEnemy ? 0 : historyAnalysisModifier().score;
   const missionScore = missionContextScore(side, armyProfile(units));
+  const editionScore = editionListScore(units);
 
   return {
-    competitive: clamp(base.competitive * 0.56 + synergy * 1.8 + detachmentScore * 1.1 + enhancementScore * 1.4 + pointsEfficiency * 1.2 + historyScore + missionScore),
-    casual: clamp(base.casual * 0.62 + variety * 1.8 + (1 - Math.abs($("#risk").value - 5) / 10) * 1.1 + historyScore * 0.25 + missionScore * 0.25),
-    narrative: clamp(base.narrative * 0.64 + hasTag(units, "centerpiece") * 1.2 + leaderCount(units) * 0.7 + enhancementScore * 0.6 + variety * 1.1),
+    competitive: clamp(base.competitive * 0.56 + synergy * 1.8 + detachmentScore * 1.1 + enhancementScore * 1.4 + pointsEfficiency * 1.2 + historyScore + missionScore + editionScore),
+    casual: clamp(base.casual * 0.62 + variety * 1.8 + (1 - Math.abs($("#risk").value - 5) / 10) * 1.1 + historyScore * 0.25 + missionScore * 0.25 + editionScore * 0.35),
+    narrative: clamp(base.narrative * 0.64 + hasTag(units, "centerpiece") * 1.2 + leaderCount(units) * 0.7 + enhancementScore * 0.6 + variety * 1.1 + editionScore * 0.2),
   };
+}
+
+function editionListScore(units) {
+  if (state.rulesEdition !== "11e" || !units.length) return 0;
+  const profile = armyProfile(units);
+  const independent = units.filter((unitData) => {
+    const features = unitFeatures(unitData);
+    return features.independent || features.scoring || features.speed || features.deepStrike || features.transport;
+  }).length / units.length;
+  const enhancementLoad = units.filter((unitData) => unitData.config?.enhancement).length / Math.max(1, units.length);
+  const missionFit = (profile.control + profile.mobility + profile.scoring - 160) / 130;
+  return clampNumber(independent * 0.9 + missionFit - enhancementLoad * 0.35, -0.8, 1.1);
 }
 
 function missionContextScore(side, profile) {
@@ -7916,7 +10994,8 @@ function armyProfile(units) {
   metrics.forEach(([key]) => {
     const weighted = profile[key] / points;
     const roleCoverage = Math.min(1, coverage[key] / Math.max(2, units.length * 0.28));
-    profile[key] = clampPercent((weighted * 84 + roleCoverage * 16) * (0.78 + pointScale * 0.22));
+    const editionWeight = currentEditionProfile().scoring[key] || 1;
+    profile[key] = clampPercent((weighted * 84 + roleCoverage * 16) * (0.78 + pointScale * 0.22) * editionWeight);
   });
   return profile;
 }
@@ -8115,6 +11194,7 @@ function getTips() {
   if (state.enemyRoster.length && armyProfile(state.enemyRoster).durability > armyProfile(state.roster).antiTank + 22) {
     tips.push({ title: "Contra esta lista rival", body: "La lista rival parece mas resistente que tu anti-tank actual. Sube redundancia o cambia el plan a primarios y denial de scoring." });
   }
+  matchupAnalysisTips(armyProfile(state.roster), armyProfile(state.enemyRoster)).forEach((tip) => tips.push(tip));
   const historyContext = historyAnalysisModifier();
   if (historyContext.samples) {
     tips.push({
@@ -8131,11 +11211,19 @@ function getTips() {
 
 function suggestedCuts(context) {
   const units = state.roster;
+  return cutRecommendationCandidates(context).slice(0, 2).map(({ unitData, reasons }) => ({
+    title: `Considera quitar: ${unitData.name}`,
+    body: `${reasons.join("; ")}. Si la cambias, busca una pieza que cubra ${missingNeedLabels(rosterStructure(units.filter((unit) => unit !== unitData)), context).slice(0, 2).join(" o ") || "un rol mas claro dentro del plan"}.`,
+  }));
+}
+
+function cutRecommendationCandidates(context) {
+  const units = state.roster;
   const usefulTransportSlots = maxUsefulTransportSlots(units);
   const transportIndexes = units.map((unitData, index) => ({ unitData, index })).filter(({ unitData }) => isDedicatedTransport(unitData));
   const duplicateCounts = units.reduce((map, unitData) => map.set(unitData.name, (map.get(unitData.name) || 0) + 1), new Map());
 
-  const candidates = units.map((unitData, index) => {
+  return units.map((unitData, index) => {
     const reasons = [];
     let priority = 0;
     const planFit = archetypePlanFit(unitData, context.playstyle);
@@ -8171,36 +11259,153 @@ function suggestedCuts(context) {
     return { unitData, priority, reasons };
   })
     .filter((item) => item.priority > 0)
-    .sort((a, b) => b.priority - a.priority)
-    .slice(0, 2);
+    .sort((a, b) => b.priority - a.priority);
+}
 
-  return candidates.map(({ unitData, reasons }) => ({
-    title: `Considera quitar: ${unitData.name}`,
-    body: `${reasons.join("; ")}. Si la cambias, busca una pieza que cubra ${missingNeedLabels(rosterStructure(units.filter((unit) => unit !== unitData)), context).slice(0, 2).join(" o ") || "un rol mas claro dentro del plan"}.`,
-  }));
+function matchupAnalysisTips(player, enemy) {
+  if (!state.enemyRoster.length) return [];
+  const tips = [];
+  const factors = matchupBreakdown(player, enemy);
+  const negatives = factors.filter((item) => item.value <= -2.2).sort((a, b) => a.value - b.value);
+  const positives = factors.filter((item) => item.value >= 2.2).sort((a, b) => b.value - a.value);
+  negatives.slice(0, 2).forEach((item) => {
+    tips.push({
+      title: `Riesgo de matchup: ${item.label}`,
+      body: matchupRiskAdvice(item.label, player, enemy),
+    });
+  });
+  positives.slice(0, 1).forEach((item) => {
+    tips.push({
+      title: `Ventaja explotable: ${item.label}`,
+      body: matchupAdvantageAdvice(item.label),
+    });
+  });
+  return tips;
+}
+
+function matchupRiskAdvice(label, player, enemy) {
+  if (label === "Respuesta a resistencia") return `Tu anti-tank (${Math.round(player.antiTank)}) no alcanza comodo la durabilidad rival (${Math.round(enemy.durability)}). Agrega redundancia antitanque o juega a puntuar evitando sus piezas mas duras.`;
+  if (label === "Mesa y OC") return `El rival pelea mejor la mesa. Necesitas mas OC, pantallas o trading barato; no cambies unidades de scoring por dano que no quite primaria.`;
+  if (label === "Movilidad vs denial") return `El rival puede elegir mejores intercambios. Protege flancos, bloquea deep strike y guarda una unidad movil para T4-T5.`;
+  if (label === "Dano relevante") return `El rival amenaza tus recursos mas eficientemente de lo que tu amenazas los suyos. Prioriza lineas seguras, reservas y concentrar activaciones.`;
+  if (label === "Arquetipo rival") return `El arquetipo rival encaja mejor en esta configuracion. Ajusta plan de despliegue y evita jugar su partida ideal.`;
+  return "Hay un diferencial negativo claro contra esta lista rival; corrige ese rol antes de optimizar dano general.";
+}
+
+function matchupAdvantageAdvice(label) {
+  if (label === "Respuesta a resistencia") return "Tienes herramientas para romper sus piezas caras: no las dividas, concentra dano hasta borrar una amenaza completa.";
+  if (label === "Mesa y OC") return "Tu ventaja esta en primarias y denial: fuerza al rival a gastar dano en unidades baratas mientras puntuas.";
+  if (label === "Movilidad vs denial") return "Puedes dictar intercambios: amenaza dos flancos y obliga al rival a comprometerse primero.";
+  if (label === "Dano relevante") return "Tu dano relevante es superior: elige objetivos por impacto en scoring, no por facilidad de matar.";
+  return "Tu arquetipo tiene una ventaja clara en este cruce; despliega para preservar esa condicion.";
 }
 
 function calculateWinRate() {
   if (!state.roster.length) return 50;
-  const playerScores = calculateScores("player");
-  const enemyScores = calculateScores("enemy");
   const playerProfile = armyProfile(state.roster);
   const enemyProfile = armyProfile(state.enemyRoster);
+  const hasEnemy = Boolean(state.enemyRoster.length);
+  const turnPlan = missionTurnPlan();
+  const factors = analysisWeightedFactors(playerProfile, enemyProfile, turnPlan);
 
   let chance = 50;
-  chance += (playerScores.competitive - enemyScores.competitive) * 4;
-  chance += profileEdge(playerProfile, enemyProfile);
-  chance += missionModifier(playerProfile, enemyProfile);
-  chance += deploymentModifier();
-  chance += layoutModifier();
-  chance += secondaryPlanModifier(playerProfile, enemyProfile);
-  chance += turnPlanModifier(missionTurnPlan());
-  chance += historyWinRateModifier();
-  chance += $("#experience").value === "expert" ? 4 : $("#experience").value === "new" ? -4 : 0;
+  chance += factors.reduce((sum, item) => sum + item.contribution, 0);
   chance -= Math.max(0, state.gameSize - totalPoints(state.roster)) / (state.gameSize * 0.0525);
-  chance += Math.max(0, state.gameSize - totalPoints(state.enemyRoster)) / (state.gameSize * 0.0675);
-  if (!state.enemyRoster.length) chance -= 4;
+  if (hasEnemy) chance += Math.max(0, state.gameSize - totalPoints(state.enemyRoster)) / (state.gameSize * 0.0675);
+  if (!hasEnemy) chance -= 8;
   return Math.round(Math.max(8, Math.min(92, chance)));
+}
+
+function analysisWeightedFactors(player, enemy, turnPlan = missionTurnPlan()) {
+  const hasEnemy = Boolean(state.enemyRoster.length);
+  const edition = currentEditionProfile();
+  const playerScores = calculateScores("player");
+  const enemyScores = calculateScores("enemy");
+  const listRaw = hasEnemy ? playerScores.competitive - enemyScores.competitive : playerScores.competitive - 6;
+  const matchupRaw = profileEdge(player, enemy);
+  const missionRaw = missionModifier(player, enemy);
+  const deploymentRaw = deploymentModifier();
+  const layoutRaw = layoutModifier();
+  const terrainRaw = terrainModifier(player, enemy);
+  const secondaryRaw = secondaryPlanModifier(player, enemy);
+  const turnRaw = turnPlanModifier(turnPlan);
+  const historyRaw = historyWinRateModifier();
+  const experienceRaw = $("#experience").value === "expert" ? 4 : $("#experience").value === "new" ? -4 : 0;
+  return [
+    {
+      label: "Calidad de lista",
+      raw: listRaw,
+      scale: hasEnemy ? 1.1 : 0.85,
+      weight: hasEnemy ? 16 : 24,
+      note: hasEnemy ? "comparacion competitiva contra la lista rival" : "valor interno sin rival cargado",
+    },
+    {
+      label: "Matchup rival",
+      raw: matchupRaw,
+      scale: hasEnemy ? 0.82 * edition.analysis.matchup : 0,
+      weight: hasEnemy ? 24 : 0,
+      note: hasEnemy ? matchupFactorSummary(player, enemy) : "sin lista rival cargada",
+    },
+    {
+      label: "Mision primaria",
+      raw: missionRaw,
+      scale: 1.08 * edition.analysis.mission,
+      weight: 14,
+      note: "roles que premia la primaria actual contra el rival",
+    },
+    {
+      label: "Deployment",
+      raw: deploymentRaw,
+      scale: 0.82 * edition.analysis.deployment,
+      weight: 8,
+      note: "distancia, angulos, amenaza T1 y staging",
+    },
+    {
+      label: "Layout",
+      raw: layoutRaw,
+      scale: 0.9 * edition.analysis.layout,
+      weight: 8,
+      note: "densidad, lineas de tiro y rutas de avance",
+    },
+    {
+      label: "Terreno 11va",
+      raw: terrainRaw,
+      scale: state.rulesEdition === "11e" ? 1.05 : 0,
+      weight: state.rulesEdition === "11e" ? 8 : 0,
+      note: state.rulesEdition === "11e" ? terrainProfileInfo($("#terrainProfile")?.value || "balancedAreas").advice : "solo aplica en 11va",
+    },
+    {
+      label: "Secundarias",
+      raw: secondaryRaw,
+      scale: hasEnemy ? 0.98 * edition.analysis.secondary : 0.55 * edition.analysis.secondary,
+      weight: hasEnemy ? 10 : 6,
+      note: "facilidad para puntuar tus secundarias y negar las del rival",
+    },
+    {
+      label: "Plan por turnos",
+      raw: turnRaw,
+      scale: 0.78 * edition.analysis.turns,
+      weight: 8,
+      note: `pico T${turnPlan.bestTurn}, turno delicado T${turnPlan.weakTurn}`,
+    },
+    {
+      label: "Memoria",
+      raw: historyRaw,
+      scale: 0.85 * edition.analysis.memory,
+      weight: 8,
+      note: historyRaw ? "partidas guardadas similares alteran la probabilidad" : "sin impacto historico relevante",
+    },
+    {
+      label: "Experiencia",
+      raw: experienceRaw,
+      scale: 0.65,
+      weight: 4,
+      note: "castiga o premia planes complejos segun nivel del jugador",
+    },
+  ].map((item) => ({
+    ...item,
+    contribution: clampNumber(item.raw * item.scale, -18, 18),
+  }));
 }
 
 function historyWinRateModifier() {
@@ -8238,6 +11443,8 @@ function relevantHistoryMatches() {
   const enemyStyle = currentEnemyStyle();
   return state.matchHistory.filter((item) => {
     let score = 0;
+    if ((item.rulesEdition || "10e") === state.rulesEdition) score += 2;
+    else if (state.rulesEdition === "11e") score -= 1;
     if (item.mission && item.mission === mission) score += 2;
     if (item.deployment && item.deployment === deployment) score += 1;
     if (enemyFaction && reportOpponentFaction(item) && normalizeName(enemyFaction) === normalizeName(reportOpponentFaction(item))) score += 2;
@@ -8257,42 +11464,218 @@ function clampNumber(value, min, max) {
 }
 
 function profileEdge(player, enemy) {
-  let edge = 0;
-  edge += (player.antiTank - enemy.durability) / 18;
-  edge += (player.scoring - enemy.control) / 20;
-  edge += (player.mobility - enemy.shooting) / 24;
-  edge += (player.control - enemy.mobility) / 28;
-  return edge;
+  if (!state.enemyRoster.length) return 0;
+  return clampNumber(matchupBreakdown(player, enemy).reduce((sum, item) => sum + item.value, 0), -22, 22);
+}
+
+function matchupBreakdown(player, enemy) {
+  if (!state.enemyRoster.length) return [];
+  const playerStyle = $("#playstyle")?.value || "midrange";
+  const enemyStyle = currentEnemyStyle();
+  const playerKill = killPressureInto(player, enemy);
+  const enemyKill = killPressureInto(enemy, player);
+  const items = [
+    {
+      label: "Dano relevante",
+      value: clampNumber((playerKill - enemyKill) / 5.8, -7.5, 7.5),
+      note: `tu paquete de dano ${Math.round(playerKill)} vs presion rival ${Math.round(enemyKill)}`,
+    },
+    {
+      label: "Respuesta a resistencia",
+      value: clampNumber((player.antiTank - enemy.durability) / 6.2, -7, 7),
+      note: `anti-tank ${Math.round(player.antiTank)} contra durabilidad rival ${Math.round(enemy.durability)}`,
+    },
+    {
+      label: "Mesa y OC",
+      value: clampNumber((player.scoring + player.control - enemy.scoring - enemy.control) / 8.5, -7, 7),
+      note: `primaria/control ${Math.round(player.scoring + player.control)} vs ${Math.round(enemy.scoring + enemy.control)}`,
+    },
+    {
+      label: "Movilidad vs denial",
+      value: clampNumber((player.mobility + player.control - enemy.mobility - enemy.control) / 9.5, -6, 6),
+      note: `rutas, pantallas y capacidad de negar secundarias`,
+    },
+    {
+      label: "Arquetipo rival",
+      value: styleCounterModifier(playerStyle, enemyStyle, player, enemy),
+      note: `${archetypeDisplayName(playerStyle)} contra ${archetypeDisplayName(enemyStyle)}`,
+    },
+  ];
+  return items;
+}
+
+function killPressureInto(source, target) {
+  const targetHeavy = clamp01((target.durability - 42) / 44);
+  const targetBoard = clamp01((target.scoring + target.control - 95) / 80);
+  return source.shooting * 0.28 + source.melee * 0.24 + source.antiTank * (0.18 + targetHeavy * 0.22) + source.control * targetBoard * 0.1 + source.mobility * 0.06;
+}
+
+function styleCounterModifier(playerStyle, enemyStyle, player, enemy) {
+  if (!enemyStyle) return 0;
+  let value = 0;
+  if (enemyStyle === "skew") value += (player.antiTank + Math.max(player.melee, player.shooting) - enemy.durability * 1.45) / 13;
+  if (enemyStyle === "horde") value += (player.control + player.shooting + player.melee * 0.6 - enemy.scoring - enemy.control) / 14;
+  if (enemyStyle === "meleeRush") value += (player.control + player.durability + player.shooting * 0.6 - enemy.mobility - enemy.melee) / 15;
+  if (enemyStyle === "gunline") value += (player.mobility + player.durability * 0.6 - enemy.shooting - enemy.antiTank * 0.45) / 14;
+  if (enemyStyle === "mobilityTempo") value += (player.control + player.scoring - enemy.mobility - enemy.scoring * 0.65) / 12;
+  if (enemyStyle === "attrition") value += (player.scoring + player.antiTank + player.control * 0.5 - enemy.durability * 1.15) / 15;
+  if (enemyStyle === "alphaStrike") value += (player.durability + player.control - enemy.shooting - enemy.antiTank * 0.6) / 15;
+  if (enemyStyle === "trading") value += (player.control + player.durability * 0.5 + player.scoring - enemy.mobility - enemy.control - enemy.scoring * 0.35) / 15;
+  if (enemyStyle === "combo") value += (player.mobility + player.shooting + player.control - enemy.durability - enemy.melee - enemy.shooting * 0.45) / 17;
+  if (playerStyle === "gunline" && /dense|wtcDense|ftcDense|ca2|ca4|ca6/i.test($("#layout")?.value || "")) value -= 1.2;
+  if (playerStyle === "meleeRush" && /open|wtcOpen|ftcOpen|ca3|ca5/i.test($("#layout")?.value || "")) value -= 1.1;
+  return clampNumber(value, -5.5, 5.5);
+}
+
+function forceDispositionLabel(value) {
+  const labels = {
+    takeHold: "Take & Hold",
+    disruption: "Disruption",
+    purgeFoe: "Purge The Foe",
+    priorityTargets: "Priority Targets",
+    reconnaissance: "Reconnaissance",
+  };
+  return labels[value] || "Take & Hold";
+}
+
+function inferForceDisposition(side) {
+  const styles = activeDetachmentStyles(side);
+  const playstyle = side === "enemy" ? currentEnemyStyle() : $("#playstyle")?.value || "midrange";
+  if (styles.includes("mobility") || ["mobilityTempo"].includes(playstyle)) return "reconnaissance";
+  if (styles.includes("pressure") || ["meleeRush", "trading"].includes(playstyle)) return "disruption";
+  if (styles.includes("shooting") || ["gunline", "alphaStrike"].includes(playstyle)) return "priorityTargets";
+  if (["skew", "attrition"].includes(playstyle)) return "purgeFoe";
+  return "takeHold";
+}
+
+function forceDispositionScore(profile, disposition) {
+  const values = {
+    takeHold: profile.scoring * 0.34 + profile.control * 0.32 + profile.durability * 0.2 + profile.mobility * 0.14,
+    disruption: profile.mobility * 0.3 + profile.control * 0.26 + profile.melee * 0.2 + profile.scoring * 0.16 + profile.durability * 0.08,
+    purgeFoe: Math.max(profile.shooting, profile.melee) * 0.3 + profile.antiTank * 0.24 + profile.mobility * 0.14 + profile.control * 0.12 + profile.durability * 0.1,
+    priorityTargets: profile.antiTank * 0.3 + profile.shooting * 0.24 + profile.mobility * 0.18 + profile.control * 0.14 + profile.scoring * 0.14,
+    reconnaissance: profile.mobility * 0.38 + profile.scoring * 0.26 + profile.control * 0.2 + profile.durability * 0.08 + Math.max(profile.shooting, profile.melee) * 0.08,
+  };
+  return values[disposition] || values.takeHold;
+}
+
+function forceDispositionModifier(player, enemy) {
+  if (state.rulesEdition !== "11e") return 0;
+  const own = $("#forceDisposition")?.value || inferForceDisposition("player");
+  const rival = $("#enemyForceDisposition")?.value || inferForceDisposition("enemy");
+  const ownScore = forceDispositionScore(player, own);
+  if (!state.enemyRoster.length) return clampNumber((ownScore - 55) / 7 + forceDispositionDenialScore(player, rival) / 42, -5.5, 5.5);
+  const enemyScore = forceDispositionScore(enemy, rival);
+  const denial = forceDispositionDenialScore(player, rival) - forceDispositionDenialScore(enemy, own);
+  return clampNumber((ownScore - enemyScore) / 7.2 + denial / 11, -7.5, 7.5);
+}
+
+function forceDispositionDenialScore(profile, enemyDisposition) {
+  if (enemyDisposition === "takeHold") return profile.control * 0.38 + profile.mobility * 0.22 + profile.melee * 0.14;
+  if (enemyDisposition === "disruption") return profile.control * 0.35 + profile.durability * 0.25 + profile.mobility * 0.12;
+  if (enemyDisposition === "purgeFoe") return profile.durability * 0.3 + profile.mobility * 0.22 + profile.control * 0.18;
+  if (enemyDisposition === "priorityTargets") return profile.mobility * 0.28 + profile.control * 0.22 + profile.durability * 0.2;
+  if (enemyDisposition === "reconnaissance") return profile.control * 0.34 + profile.mobility * 0.2 + profile.scoring * 0.18;
+  return profile.control * 0.25;
+}
+
+function terrainProfileInfo(value) {
+  const profiles = {
+    balancedAreas: {
+      label: "areas balanceadas",
+      hidden: true,
+      advice: "Premia listas con OC repartido, movilidad media y capacidad de sostener objetivos dentro del terreno.",
+    },
+    objectiveStrongholds: {
+      label: "objetivos fortificados",
+      hidden: true,
+      advice: "Sube el valor de anclas, infanteria resistente y unidades que puedan entrar al terreno sin morir.",
+    },
+    denseHidden: {
+      label: "denso con Hidden frecuente",
+      hidden: true,
+      advice: "Reduce el alpha de disparo largo y premia staging, melee, trading y control de rutas.",
+    },
+    openLanes: {
+      label: "lineas abiertas",
+      hidden: false,
+      advice: "El disparo recupera valor, pero las unidades que no alcancen terreno quedan muy expuestas.",
+    },
+    mixedVertical: {
+      label: "mixto vertical",
+      hidden: true,
+      advice: "Premia unidades con vuelo, deep strike, infiltracion y capacidad de reposicionarse entre niveles/rutas.",
+    },
+  };
+  return profiles[value] || profiles.balancedAreas;
+}
+
+function terrainFitScore(profile, terrain) {
+  const values = {
+    balancedAreas: profile.scoring * 0.24 + profile.control * 0.25 + profile.mobility * 0.22 + profile.durability * 0.16 + Math.max(profile.shooting, profile.melee) * 0.13,
+    objectiveStrongholds: profile.durability * 0.3 + profile.control * 0.26 + profile.scoring * 0.2 + profile.melee * 0.12 + profile.mobility * 0.12,
+    denseHidden: profile.melee * 0.24 + profile.control * 0.24 + profile.mobility * 0.22 + profile.scoring * 0.16 + profile.durability * 0.14,
+    openLanes: profile.shooting * 0.3 + profile.antiTank * 0.26 + profile.durability * 0.18 + profile.mobility * 0.14 + profile.scoring * 0.12,
+    mixedVertical: profile.mobility * 0.34 + profile.scoring * 0.22 + profile.control * 0.2 + Math.max(profile.shooting, profile.melee) * 0.14 + profile.durability * 0.1,
+  };
+  return values[terrain] || values.balancedAreas;
+}
+
+function terrainModifier(player, enemy) {
+  if (state.rulesEdition !== "11e") return 0;
+  const terrain = $("#terrainProfile")?.value || "balancedAreas";
+  if (!state.enemyRoster.length) return clampNumber((terrainFitScore(player, terrain) - 55) / 8, -4.5, 4.5);
+  let value = 0;
+  if (terrain === "balancedAreas") value += (player.scoring + player.control + player.mobility - enemy.scoring - enemy.control - enemy.mobility) / 30;
+  if (terrain === "objectiveStrongholds") value += (player.durability + player.control + player.scoring - enemy.durability - enemy.control - enemy.scoring) / 28;
+  if (terrain === "denseHidden") value += (player.melee + player.control + player.mobility - enemy.melee - enemy.control - enemy.mobility) / 28;
+  if (terrain === "openLanes") value += (player.shooting + player.antiTank + player.durability * 0.35 - enemy.shooting - enemy.antiTank - enemy.durability * 0.35) / 30;
+  if (terrain === "mixedVertical") value += (player.mobility + player.scoring + player.control - enemy.mobility - enemy.scoring - enemy.control) / 27;
+  return clampNumber(value, -5.5, 5.5);
 }
 
 function missionModifier(player, enemy) {
+  const edition = currentEditionProfile();
+  if (state.rulesEdition === "11e") return forceDispositionModifier(player, enemy);
+  if (!state.enemyRoster.length) return clampNumber(missionContextScore("player", player) * 2, -3, 3);
   const mission = $("#mission").value;
-  if (mission === "takeHold") return clampNumber((player.durability + player.scoring + player.control - enemy.durability - enemy.scoring - enemy.control) / 22, -7, 7);
-  if (mission === "supplyDrop") return clampNumber((player.mobility + player.scoring + player.durability * 0.5 - enemy.mobility - enemy.scoring - enemy.durability * 0.5) / 20, -7, 7);
-  if (mission === "purgeFoe") return clampNumber((player.shooting + player.melee + player.antiTank * 0.7 - enemy.shooting - enemy.melee - enemy.antiTank * 0.7) / 24, -7, 7);
-  if (mission === "scorchedEarth") return clampNumber((player.mobility + player.control + player.scoring * 0.6 - enemy.mobility - enemy.control - enemy.scoring * 0.6) / 20, -7, 7);
-  if (mission === "hiddenSupplies") return clampNumber((player.control + player.scoring + player.mobility - enemy.control - enemy.scoring - enemy.mobility) / 25, -7, 7);
-  if (mission === "linchpin") return clampNumber((player.durability + player.control + player.scoring - enemy.durability - enemy.control - enemy.scoring) / 25, -7, 7);
-  if (mission === "terraform") return clampNumber((player.mobility + player.control + player.scoring - enemy.mobility - enemy.control - enemy.scoring) / 24, -7, 7);
+  const terrainObjectiveBias = edition.features.terrainObjectives ? (player.control + player.mobility - enemy.control - enemy.mobility) / 45 : 0;
+  if (mission === "takeHold") return clampNumber((player.durability + player.scoring + player.control - enemy.durability - enemy.scoring - enemy.control) / 22 + terrainObjectiveBias, -8, 8);
+  if (mission === "supplyDrop") return clampNumber((player.mobility + player.scoring + player.durability * 0.5 - enemy.mobility - enemy.scoring - enemy.durability * 0.5) / 20 + terrainObjectiveBias, -8, 8);
+  if (mission === "purgeFoe") return clampNumber((player.shooting + player.melee + player.antiTank * 0.7 - enemy.shooting - enemy.melee - enemy.antiTank * 0.7) / 24 + terrainObjectiveBias * 0.45, -8, 8);
+  if (mission === "scorchedEarth") return clampNumber((player.mobility + player.control + player.scoring * 0.6 - enemy.mobility - enemy.control - enemy.scoring * 0.6) / 20 + terrainObjectiveBias, -8, 8);
+  if (mission === "hiddenSupplies") return clampNumber((player.control + player.scoring + player.mobility - enemy.control - enemy.scoring - enemy.mobility) / 25 + terrainObjectiveBias, -8, 8);
+  if (mission === "linchpin") return clampNumber((player.durability + player.control + player.scoring - enemy.durability - enemy.control - enemy.scoring) / 25 + terrainObjectiveBias * 0.8, -8, 8);
+  if (mission === "terraform") return clampNumber((player.mobility + player.control + player.scoring - enemy.mobility - enemy.control - enemy.scoring) / 24 + terrainObjectiveBias, -8, 8);
   return 0;
 }
 
 function deploymentModifier() {
   const deployment = $("#deployment").value;
   const playstyle = $("#playstyle").value;
-  if (deployment === "search" && ["meleeRush", "mobilityTempo"].includes(playstyle)) return 3.2;
-  if (deployment === "crucible" && playstyle === "gunline") return -3;
-  if (deployment === "dawn" && ["midrange", "horde", "mobilityTempo"].includes(playstyle)) return 1.8;
-  if (deployment === "tippingPoint" && ["trading", "midrange", "meleeRush"].includes(playstyle)) return 2.2;
-  if (deployment === "hammer" && ["gunline", "alphaStrike"].includes(playstyle)) return 3.1;
-  if (deployment === "sweeping" && ["mobilityTempo", "horde", "trading"].includes(playstyle)) return 3;
-  return 0;
+  const enemyStyle = currentEnemyStyle();
+  const edition = currentEditionProfile();
+  let modifier = 0;
+  if (deployment === "search" && ["meleeRush", "mobilityTempo"].includes(playstyle)) modifier += 3.2;
+  if (deployment === "crucible" && playstyle === "gunline") modifier -= 3;
+  if (deployment === "dawn" && ["midrange", "horde", "mobilityTempo"].includes(playstyle)) modifier += 1.8;
+  if (deployment === "tippingPoint" && ["trading", "midrange", "meleeRush"].includes(playstyle)) modifier += 2.2;
+  if (deployment === "hammer" && ["gunline", "alphaStrike"].includes(playstyle)) modifier += 3.1;
+  if (deployment === "sweeping" && ["mobilityTempo", "horde", "trading"].includes(playstyle)) modifier += 3;
+  if (deployment === "search" && ["meleeRush", "mobilityTempo"].includes(enemyStyle)) modifier -= 2.2;
+  if (deployment === "hammer" && ["gunline", "alphaStrike"].includes(enemyStyle)) modifier -= 2.1;
+  if (deployment === "sweeping" && ["mobilityTempo", "horde", "trading"].includes(enemyStyle)) modifier -= 1.9;
+  if (edition.features.hidden && ["gunline", "alphaStrike"].includes(enemyStyle)) modifier += 1.1;
+  if (edition.features.chargeFlex && ["meleeRush", "mobilityTempo"].includes(playstyle)) modifier += 0.9;
+  if (edition.features.disembarkTempo && ["trading", "midrange", "mobilityTempo"].includes(playstyle)) modifier += 0.6;
+  return clampNumber(modifier, -5.5, 5.5);
 }
 
 function layoutModifier() {
   const layout = $("#layout").value;
   const playstyle = $("#playstyle").value;
-  const enemyStyle = $("#enemyStyle").value;
+  const enemyStyle = currentEnemyStyle();
+  const edition = currentEditionProfile();
   let modifier = 0;
   if (layout === "dense" && ["meleeRush", "trading", "mobilityTempo", "horde"].includes(playstyle)) modifier += 3;
   if (layout === "dense" && ["gunline", "alphaStrike"].includes(enemyStyle)) modifier += 2;
@@ -8340,15 +11723,20 @@ function layoutModifier() {
     if ([3, 5].includes(number) && ["gunline", "alphaStrike"].includes(playstyle)) modifier += 1;
     if ([7, 8].includes(number) && playstyle === "meleeRush") modifier += 1;
   }
+  if (edition.features.hidden && /open|wtcOpen|ftcOpen|flgOpen|ca3|ca5/i.test(layout)) modifier += ["meleeRush", "trading", "mobilityTempo"].includes(playstyle) ? 0.9 : 0.35;
+  if (edition.features.terrainObjectives && /dense|wtc|ftc|flg|ca/i.test(layout)) modifier += ["midrange", "trading", "horde", "mobilityTempo"].includes(playstyle) ? 1.1 : 0.4;
   return clampNumber(modifier * 1.25, -6, 6);
 }
 
 function simulationSummary(winRate) {
   if (!state.enemyRoster.length) return "Agrega o importa una lista enemiga para que el matchup sea una comparacion real.";
-  if (winRate >= 65) return "Matchup favorable: tu lista supera al rival en perfiles clave para esta mision y layout.";
-  if (winRate >= 52) return "Matchup ligeramente favorable: pequenas decisiones de despliegue pueden mover mucho el resultado.";
-  if (winRate >= 45) return "Matchup parejo: revisa secondaries, pantallas y amenazas de turno 2.";
-  return "Matchup dificil: el rival presiona mejor los perfiles que esta mision premia.";
+  const factors = analysisWeightedFactors(armyProfile(state.roster), armyProfile(state.enemyRoster), missionTurnPlan());
+  const swing = [...factors].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))[0];
+  const swingText = swing ? ` Factor principal: ${swing.label} ${signedDecimal(swing.contribution)} (${swing.note}).` : "";
+  if (winRate >= 65) return `Matchup favorable: tu lista supera al rival en perfiles clave para esta mision y layout.${swingText}`;
+  if (winRate >= 52) return `Matchup ligeramente favorable: pequenas decisiones de despliegue pueden mover mucho el resultado.${swingText}`;
+  if (winRate >= 45) return `Matchup parejo: revisa secondaries, pantallas y amenazas de turno 2.${swingText}`;
+  return `Matchup dificil: el rival presiona mejor los perfiles que esta mision premia.${swingText}`;
 }
 
 init();

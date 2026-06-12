@@ -112,8 +112,8 @@ function extractUnits(xml) {
     const attrs = match[1];
     const rawName = attr(attrs, "name");
     const targetId = attr(attrs, "targetId");
-    const name = decodeXml(rawName);
-    if (!name || rawName.includes("[Legends]") || isNonUnitName(name)) continue;
+    const name = cleanUnitName(decodeXml(rawName));
+    if (!name || isNonUnitName(name)) continue;
     const target = allUnitTargets.get(targetId);
     if (!target) continue;
     entries.set(normalize(name), {
@@ -121,7 +121,7 @@ function extractUnits(xml) {
       points: target.points,
       categories: target.categories,
       rulesText: target.block,
-      section: sectionFromCategories(target.categories, name),
+      section: sectionFromCategories(target.categories, decodeXml(rawName)),
     });
   }
   return [...entries.values()];
@@ -165,8 +165,8 @@ function extractSynergy(xml, units) {
     const attrs = match[1];
     const rawName = attr(attrs, "name");
     const targetId = attr(attrs, "targetId");
-    const name = decodeXml(rawName);
-    if (!name || rawName.includes("[Legends]") || isNonUnitName(name)) continue;
+    const name = cleanUnitName(decodeXml(rawName));
+    if (!name || isNonUnitName(name)) continue;
     const target = allUnitTargets.get(targetId);
     if (!target?.block) continue;
     const unit = findUnitByName(units, name);
@@ -573,7 +573,7 @@ function mergeUnit(previous, incoming) {
 }
 
 function bestSection(a, b, name) {
-  const rank = new Map(["Other", "Infantry", "Vehicle", "Monster", "Mounted", "Dedicated Transport", "Battleline", "Character", "Epic Hero"].map((section, index) => [section, index]));
+  const rank = new Map(["Other", "Infantry", "Vehicle", "Monster", "Mounted", "Allied Units", "Legends", "Fortification", "Dedicated Transport", "Battleline", "Character", "Epic Hero"].map((section, index) => [section, index]));
   const first = a || inferSection(name);
   const second = b || "Other";
   return (rank.get(first) || 0) >= (rank.get(second) || 0) ? first : second;
@@ -619,6 +619,13 @@ function decodeXml(value) {
     .replace(/&gt;/g, ">");
 }
 
+function cleanUnitName(value = "") {
+  return String(value || "")
+    .replace(/\s*\[Legends?\]\s*/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalize(value) {
   return value.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -660,8 +667,11 @@ function inferTags(name, categories = [], rulesText = "") {
   const categoryText = categories.join(" ").toLowerCase();
   const rules = rulesText.toLowerCase();
   const tags = [];
+  if (/allied units?/.test(categoryText)) tags.push("allied");
+  if (/\blegends?\b/.test(categoryText) || /\[legends?\]/.test(text)) tags.push("legends");
   if (/epic hero|character/.test(categoryText)) tags.push("leader");
   if (/battleline/.test(categoryText)) tags.push("objectives");
+  if (/fortification/.test(categoryText)) tags.push("fortification", "anchor");
   if (/vehicle/.test(categoryText)) tags.push("vehicle");
   if (/monster/.test(categoryText)) tags.push("monster");
   if (/mounted|fly/.test(categoryText)) tags.push("mobility");
@@ -678,7 +688,7 @@ function inferTags(name, categories = [], rulesText = "") {
   if (/jump pack|with jump packs|inceptor|suppressor/.test(text)) tags.push("jump pack");
   if (/captain|commander|canoness|farseer|overlord|lord|warboss|primus|kahl|inquisitor|champion|marshal|chaplain|librarian|ethereal|autarch|archon|haemonculus|succubus/.test(text)) tags.push("leader");
   if (/intercessor|squad|team|warriors|guardsmen|boyz|termagants|plague marines|rubric|battle sisters|hearthkyn|kabalite|wyches|cultist|neophyte|strike squad/.test(text)) tags.push("objectives");
-  if (/tank|raider|rhino|impulsor|dreadnought|predator|ark|hammerhead|devilfish|sagitaur|fortress|knight|war dog|crawler|vehicle/.test(text)) tags.push("vehicle");
+  if (/\btank\b|raider|rhino|impulsor|dreadnought|predator|ghost ark|doomsday ark|hammerhead|devilfish|sagitaur|fortress|war dog|crawler|vehicle/.test(text)) tags.push("vehicle");
   if (/jump|bike|cavalry|piranha|raider|venom|seraphim|hawk|spider|warp|scourges|inceptor|interceptor|teleport|deep/.test(text)) tags.push("mobility");
   if (/eradicator|dragon|sunforge|destroyer|lancer|doomsday|brigand|warglaive|hammerhead|anti/.test(text)) tags.push("anti-tank");
   if (/terminator|guard|wraith|custodian|deathshroud|hearthguard|aberrant|meganob|ctan|c'tan|avatar|dreadnought|knight/.test(text)) tags.push("elite", "anchor");
@@ -694,14 +704,18 @@ function inferSection(name) {
   if (/captain|commander|canoness|farseer|overlord|lord|warboss|primus|kahl|inquisitor|champion|marshal|chaplain|librarian|ethereal|autarch|archon|haemonculus|succubus|lieutenant|apothecary|ancient|techmarine|judiciar|broodlord|neurotyrant|patriarch|magus|iconward|biologus|tallyman|sorcerer|daemon prince|big mek|painboy|weirdboy|boss|platoon command/.test(text)) return "Character";
   if (/intercessor squad|heavy intercessor squad|assault intercessor|crusader squad|battle sisters squad|cadian shock troops|infantry squad|boyz|beast snagga boyz|termagants|hormagaunts|necron warriors|immortals|rubric marines|plague marines|legionaries|cultist mob|kabalite warriors|wyches|guardian defenders|rangers|breacher team|strike squad|hearthkyn warriors|neophyte hybrids|acolyte hybrids/.test(text)) return "Battleline";
   if (/rhino|razorback|impulsor|raider|venom|devilfish|trukk|sagitaur|chimera|immolator|drop pod|land raider|transport/.test(text)) return "Dedicated Transport";
-  if (/tank|dreadnought|predator|gladiator|repulsor|ark|hammerhead|riptide|piranha|devilfish|sagitaur|fortress|knight|war dog|crawler|castigator|exorcist|dunecrawler|ironstrider|ballistarii|vehicle|flyer|stormraven|fire prism|falcon|night spinner|wave serpent|ravager|battlewagon|stompa|wagon|monolith|doomsday/.test(text)) return "Vehicle";
+  if (/bunker|aegis defence line|noctilith crown|convergence of dominion|tidewall|feculent gnarlmaw|skull altar|miasmic malignifier|bossbunka/.test(text)) return "Fortification";
+  if (/\btank\b|dreadnought|predator|gladiator|repulsor|ghost ark|doomsday ark|hammerhead|riptide|piranha|devilfish|sagitaur|fortress|war dog|crawler|castigator|exorcist|dunecrawler|ironstrider|ballistarii|vehicle|flyer|stormraven|fire prism|falcon|night spinner|wave serpent|ravager|battlewagon|stompa|wagon|monolith|doomsday/.test(text)) return "Vehicle";
   if (/bloodthirster|keeper of secrets|lord of change|great unclean|avatar|ctan|c'tan|maleceptor|tyrannofex|haruspex|exocrine|trygon|mawloc|daemon prince|mutalith|squiggoth|monster/.test(text)) return "Monster";
   if (/bike|cavalry|outrider|thunderwolf|squighog|mounted|praetor/.test(text)) return "Mounted";
   return "Infantry";
 }
 
 function sectionFromCategories(categories = [], name = "") {
-  const priority = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "Mounted", "Monster", "Vehicle", "Infantry"];
+  const rawName = String(name || "");
+  if (/\[Legends?\]/i.test(rawName) || categories.some((category) => /^legends?$/i.test(category))) return "Legends";
+  if (categories.some((category) => /^allied units?$/i.test(category) || /^allies$/i.test(category))) return "Allied Units";
+  const priority = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "Fortification", "Mounted", "Monster", "Vehicle", "Infantry"];
   const found = priority.find((section) => categories.some((category) => category.toLowerCase() === section.toLowerCase()));
   return found || inferSection(name);
 }
